@@ -10,6 +10,7 @@ target/
 node_modules/
 dist/
 .vscode/
+frontend/.env
 
 # Системные файлы
 .DS_Store

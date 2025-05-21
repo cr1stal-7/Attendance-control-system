@@ -22,7 +22,7 @@ const Welcome = () => {
                             navigate('/teacher/dashboard', { state: response.data });
                             break;
                         case 'ROLE_STAFF':
-                            navigate('/staff/dashboard', { state: response.data });
+                            navigate('/staff/reports', { state: response.data });
                             break;
                     }
                 } else {

@@ -13,20 +13,20 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/teacher/settings")
-public class TeacherSettingsController {
+@RequestMapping("/api/staff/settings")
+public class StaffSettingsController {
 
     private final EmployeeRepository employeeRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public TeacherSettingsController(EmployeeRepository employeeRepository,
+    public StaffSettingsController(EmployeeRepository employeeRepository,
                                      PasswordEncoder passwordEncoder) {
         this.employeeRepository = employeeRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
     @GetMapping
-    public ResponseEntity<EmployeeSettingsDTO> getTeacherInfo(Principal principal) {
+    public ResponseEntity<EmployeeSettingsDTO> getStaffInfo(Principal principal) {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }

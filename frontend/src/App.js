@@ -7,7 +7,11 @@ import TeacherDashboard from './components/teacher/TeacherDashboard';
 import TeacherAttendance from './components/teacher/TeacherAttendance';
 import TeacherSettings from './components/teacher/TeacherSettings';
 import TeacherStatistics from './components/teacher/TeacherStatistics';
-import StaffDashboard from './components/StaffDashboard';
+import StaffLayout from './components/staff/StaffLayout';
+import StaffReports from './components/staff/StaffReports';
+import StaffAddUsers from './components/staff/StaffAddUsers';
+import StaffAddClasses from './components/staff/StaffAddClasses';
+import StaffSettings from './components/staff/StaffSettings';
 import StudentLayout from './components/student/StudentLayout';
 import StudentDashboard from './components/student/StudentDashboard';
 import StudentAttendance from './components/student/StudentAttendance';
@@ -21,7 +25,13 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/welcome" element={<Welcome />} />
         <Route path="/admin/dashboard" element={<AdminDashboard />} />
-        <Route path="/staff/dashboard" element={<StaffDashboard />} />
+        <Route path="/staff" element={<StaffLayout />}>
+          <Route path="reports" element={<StaffReports />} />
+          <Route path="add-users" element={<StaffAddUsers />} />
+          <Route path="add-classes" element={<StaffAddClasses />} />
+          <Route path="settings" element={<StaffSettings />} />
+          <Route index element={<StaffReports />} />
+        </Route>
         <Route path="/teacher" element={<TeacherLayout />}>
           <Route path="dashboard" element={<TeacherDashboard />} />
           <Route path="attendance" element={<TeacherAttendance />} />
