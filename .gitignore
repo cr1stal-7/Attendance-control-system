@@ -1,0 +1,16 @@
+# Maven
+target/
+.mvn/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+
+# Node.js / Frontend
+node_modules/
+dist/
+.vscode/
+
+# Системные файлы
+.DS_Store
+*.log
