@@ -1,9 +1,11 @@
 package com.example.attendance.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-public class StudentAttendanceDto {
+@AllArgsConstructor
+public class StudentAttendanceDTO {
     private Integer studentId;
     private String lastName;
     private String firstName;

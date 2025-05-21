@@ -32,4 +32,8 @@ public class Attendance {
     @ManyToOne
     @JoinColumn(name = "id_student")
     private Student student;
+
+    public boolean getPresent() {
+        return status != null && "Присутствовал".equals(status.getName());
+    }
 }
