@@ -12,6 +12,7 @@ import StaffReports from './components/staff/StaffReports';
 import StaffAddUsers from './components/staff/StaffAddUsers';
 import StaffAddClasses from './components/staff/StaffAddClasses';
 import StaffSettings from './components/staff/StaffSettings';
+import StaffLongAbsence from './components/staff/StaffLongAbsence';
 import StudentLayout from './components/student/StudentLayout';
 import StudentDashboard from './components/student/StudentDashboard';
 import StudentAttendance from './components/student/StudentAttendance';
@@ -30,6 +31,7 @@ function App() {
           <Route path="add-users" element={<StaffAddUsers />} />
           <Route path="add-classes" element={<StaffAddClasses />} />
           <Route path="settings" element={<StaffSettings />} />
+          <Route path="long-absence" element={<StaffLongAbsence />} />
           <Route index element={<StaffReports />} />
         </Route>
         <Route path="/teacher" element={<TeacherLayout />}>

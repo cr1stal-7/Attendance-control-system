@@ -70,6 +70,21 @@ const StaffMenu = ({ activeItem }) => {
             >
                 Настройки
             </Link>
+
+            <Link
+                to="/staff/long-absence"
+                style={{
+                    padding: '15px 20px',
+                    color: activeItem === 'long-absence' ? '#3498db' : 'white',
+                    textDecoration: 'none',
+                    backgroundColor: activeItem === 'long-absence' ? '#34495e' : 'transparent',
+                    fontWeight: activeItem === 'long-absence' ? 'bold' : 'normal',
+                    transition: 'all 0.3s',
+                    fontSize: '1.2rem'
+                }}
+            >
+                Длительное отсутствие
+            </Link>
         </div>
     );
 };
