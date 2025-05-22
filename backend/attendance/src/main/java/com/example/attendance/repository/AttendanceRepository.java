@@ -11,11 +11,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface AttendanceRepository extends JpaRepository<Attendance, Integer> {
-    @Query("SELECT a FROM Attendance a WHERE a.student = :student AND a.classEntity.datetime BETWEEN :start AND :end")
-    List<Attendance> findByStudentAndClassEntity_DatetimeBetween(
-            @Param("student") Student student,
-            @Param("start") LocalDateTime start,
-            @Param("end") LocalDateTime end);
 
     @Query("SELECT a FROM Attendance a WHERE " +
             "a.student = :student AND " +
@@ -48,5 +43,15 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Integer>
     Optional<Attendance> findTopByStudentAndStatus_NameOrderByTimeDesc(
             Student student,
             String statusName
+    );
+
+    @Query("SELECT a FROM Attendance a WHERE " +
+            "a.student = :student AND " +
+            "a.classEntity.curriculumSubject.subject.idSubject = :subjectId AND " +
+            "a.classEntity.curriculumSubject.semester.idSemester = :semesterId")
+    List<Attendance> findByStudentAndClassEntity_CurriculumSubject_Subject_IdSubjectAndClassEntity_CurriculumSubject_Semester_IdSemester(
+            @Param("student") Student student,
+            @Param("subjectId") Integer subjectId,
+            @Param("semesterId") Integer semesterId
     );
 }

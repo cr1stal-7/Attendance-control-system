@@ -4,14 +4,11 @@ import com.example.attendance.dto.*;
 import com.example.attendance.model.*;
 import com.example.attendance.repository.*;
 import com.example.attendance.service.TeacherService;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,45 +32,61 @@ public class TeacherController {
         this.attendanceRepository = attendanceRepository;
     }
 
-    @GetMapping("/subjects")
-    public ResponseEntity<List<SubjectDTO>> getTeacherSubjects(
-            @AuthenticationPrincipal UserDetails userDetails) {
+    @GetMapping("/semesters")
+    public ResponseEntity<List<SemesterDTO>> getTeacherSemesters(
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
         try {
             Integer teacherId = getTeacherIdFromUserDetails(userDetails);
             if (teacherId == null) {
                 return ResponseEntity.notFound().build();
             }
 
-            List<Subject> subjects = teacherService.getSubjectsByTeacher(teacherId);
-            if (subjects.isEmpty()) {
-                return ResponseEntity.noContent().build();
-            }
-
-            return ResponseEntity.ok(subjects.stream()
-                    .map(subject -> new SubjectDTO(subject.getIdSubject(), subject.getName()))
+            List<Semester> semesters = teacherService.getSemestersByTeacher(teacherId);
+            return ResponseEntity.ok(semesters.stream()
+                    .map(s -> new SemesterDTO(s.getIdSemester(), s.getAcademicYear(), s.getType()))
                     .collect(Collectors.toList()));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
     }
 
-    @GetMapping("/subjects/{subjectId}/groups")
-    public ResponseEntity<List<GroupDTO>> getGroupsForSubject(
+    @GetMapping("/subjects")
+    public ResponseEntity<List<SubjectDTO>> getSubjectsForSemester(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Integer subjectId) {
+            @RequestParam Integer semesterId
+    ) {
         try {
             Integer teacherId = getTeacherIdFromUserDetails(userDetails);
             if (teacherId == null) {
                 return ResponseEntity.notFound().build();
             }
 
-            List<StudentGroup> groups = teacherService.getGroupsByTeacherAndSubject(teacherId, subjectId);
-            if (groups.isEmpty()) {
-                return ResponseEntity.noContent().build();
+            List<Subject> subjects = teacherService.getSubjectsByTeacherAndSemester(teacherId, semesterId);
+            return ResponseEntity.ok(subjects.stream()
+                    .map(s -> new SubjectDTO(s.getIdSubject(), s.getName()))
+                    .collect(Collectors.toList()));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @GetMapping("/groups")
+    public ResponseEntity<List<GroupDTO>> getGroupsForSubjectAndSemester(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam Integer subjectId,
+            @RequestParam Integer semesterId
+    ) {
+        try {
+            Integer teacherId = getTeacherIdFromUserDetails(userDetails);
+            if (teacherId == null) {
+                return ResponseEntity.notFound().build();
             }
 
+            List<StudentGroup> groups = teacherService.getGroupsByTeacherAndSubjectAndSemester(
+                    teacherId, subjectId, semesterId);
             return ResponseEntity.ok(groups.stream()
-                    .map(group -> new GroupDTO(group.getIdGroup(), group.getName()))
+                    .map(g -> new GroupDTO(g.getIdGroup(), g.getName()))
                     .collect(Collectors.toList()));
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
@@ -85,16 +98,17 @@ public class TeacherController {
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam Integer groupId,
             @RequestParam Integer subjectId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+            @RequestParam Integer semesterId
+    ) {
         try {
             Integer teacherId = getTeacherIdFromUserDetails(userDetails);
             if (teacherId == null) {
                 return ResponseEntity.notFound().build();
             }
 
-            List<StudentGroup> teacherGroups = employeeRepository.findGroupsByTeacherAndSubject(teacherId, subjectId);
-            if (teacherGroups.stream().noneMatch(g -> g.getIdGroup().equals(groupId))) {
+            // Проверка что преподаватель ведет этот предмет у этой группы в этом семестре
+            if (!teacherService.isTeacherAssignedToGroupSubjectSemester(
+                    teacherId, groupId, subjectId, semesterId)) {
                 return ResponseEntity.badRequest().build();
             }
 
@@ -103,20 +117,14 @@ public class TeacherController {
                 return ResponseEntity.noContent().build();
             }
 
-            LocalDateTime startDateTime = startDate.atStartOfDay();
-            LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
-
             List<StudentAttendanceDTO> statistics = students.stream()
                     .map(student -> {
-                        List<Attendance> attendances = attendanceRepository.findByStudentAndClassEntity_DatetimeBetween(
-                                student, startDateTime, endDateTime);
+                        List<Attendance> attendances = attendanceRepository
+                                .findByStudentAndClassEntity_CurriculumSubject_Subject_IdSubjectAndClassEntity_CurriculumSubject_Semester_IdSemester(
+                                        student, subjectId, semesterId);
 
-                        List<Attendance> subjectAttendances = attendances.stream()
-                                .filter(a -> a.getClassEntity().getCurriculumSubject().getSubject().getIdSubject().equals(subjectId))
-                                .collect(Collectors.toList());
-
-                        int totalClasses = subjectAttendances.size();
-                        int missedClasses = (int) subjectAttendances.stream()
+                        int totalClasses = attendances.size();
+                        int missedClasses = (int) attendances.stream()
                                 .filter(a -> !a.getPresent())
                                 .count();
 
@@ -138,6 +146,7 @@ public class TeacherController {
 
             Map<String, Object> response = new HashMap<>();
             response.put("subjectId", subjectId);
+            response.put("semesterId", semesterId);
             response.put("students", statistics);
 
             return ResponseEntity.ok(response);

@@ -1,8 +1,7 @@
 package com.example.attendance.service;
 
-import com.example.attendance.model.Subject;
-import com.example.attendance.model.StudentGroup;
-import com.example.attendance.repository.EmployeeRepository;
+import com.example.attendance.model.*;
+        import com.example.attendance.repository.EmployeeRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,11 +14,23 @@ public class TeacherService {
         this.employeeRepository = employeeRepository;
     }
 
-    public List<Subject> getSubjectsByTeacher(Integer teacherId) {
-        return employeeRepository.findSubjectsByTeacher(teacherId);
+    public List<Semester> getSemestersByTeacher(Integer teacherId) {
+        return employeeRepository.findSemestersByTeacher(teacherId);
     }
 
-    public List<StudentGroup> getGroupsByTeacherAndSubject(Integer teacherId, Integer subjectId) {
-        return employeeRepository.findGroupsByTeacherAndSubject(teacherId, subjectId);
+    public List<Subject> getSubjectsByTeacherAndSemester(Integer teacherId, Integer semesterId) {
+        return employeeRepository.findSubjectsByTeacherAndSemester(teacherId, semesterId);
+    }
+
+    public List<StudentGroup> getGroupsByTeacherAndSubjectAndSemester(
+            Integer teacherId, Integer subjectId, Integer semesterId) {
+        return employeeRepository.findGroupsByTeacherAndSubjectAndSemester(
+                teacherId, subjectId, semesterId);
+    }
+
+    public boolean isTeacherAssignedToGroupSubjectSemester(
+            Integer teacherId, Integer groupId, Integer subjectId, Integer semesterId) {
+        return employeeRepository.isTeacherAssignedToGroupSubjectSemester(
+                teacherId, groupId, subjectId, semesterId);
     }
 }

@@ -1,75 +1,111 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
-import { registerLocale, setDefaultLocale } from 'react-datepicker';
-import ru from 'date-fns/locale/ru';
-
-registerLocale('ru', ru);
 
 const TeacherStatistics = () => {
     const [statistics, setStatistics] = useState({ students: [] });
     const [loading, setLoading] = useState(false);
+    const [selectedSemester, setSelectedSemester] = useState('');
     const [selectedSubject, setSelectedSubject] = useState('');
     const [selectedGroup, setSelectedGroup] = useState('');
-    const [startDate, setStartDate] = useState(() => {
-        const date = new Date();
-        date.setMonth(date.getMonth() - 1);
-        return date;
-    });
-    const [endDate, setEndDate] = useState(new Date());
+    const [semesters, setSemesters] = useState([]);
     const [subjects, setSubjects] = useState([]);
     const [groups, setGroups] = useState([]);
-    const [dateError, setDateError] = useState('');
 
     useEffect(() => {
-        fetchTeacherSubjects();
+        fetchTeacherSemesters();
     }, []);
 
     useEffect(() => {
-        if (selectedSubject && selectedGroup) {
+        if (selectedSemester) {
+            fetchSubjectsForSemester(selectedSemester);
+        } else {
+            setSubjects([]);
+            setSelectedSubject('');
+        }
+    }, [selectedSemester]);
+
+    useEffect(() => {
+        if (selectedSemester && selectedSubject) {
+            fetchGroupsForSubjectAndSemester(selectedSubject, selectedSemester);
+        } else {
+            setGroups([]);
+            setSelectedGroup('');
+        }
+    }, [selectedSemester, selectedSubject]);
+
+    useEffect(() => {
+        if (selectedSemester && selectedSubject && selectedGroup) {
             fetchStatistics();
         }
-    }, [selectedSubject, selectedGroup, startDate, endDate]);
+    }, [selectedSemester, selectedSubject, selectedGroup]);
 
-    const fetchTeacherSubjects = async () => {
+    const fetchTeacherSemesters = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/api/teacher/subjects', {
-                withCredentials: true
-            });
-            setSubjects(response.data);
+            setLoading(true);
+            const response = await axios.get(
+                'http://localhost:8080/api/teacher/semesters',
+                { withCredentials: true }
+            );
+            setSemesters(response.data);
         } catch (err) {
-            console.error('Ошибка при получении списка дисциплин:', err);
+            console.error('Ошибка при получении списка семестров:', err);
+        } finally {
+            setLoading(false);
         }
     };
 
-    const fetchGroupsForSubject = async (subjectId) => {
+    const fetchSubjectsForSemester = async (semesterId) => {
         try {
+            setLoading(true);
             const response = await axios.get(
-                `http://localhost:8080/api/teacher/subjects/${subjectId}/groups`,
-                { withCredentials: true }
+                'http://localhost:8080/api/teacher/subjects',
+                {
+                    params: { semesterId },
+                    withCredentials: true
+                }
+            );
+            setSubjects(response.data);
+            setSelectedSubject('');
+        } catch (err) {
+            console.error('Ошибка при получении списка дисциплин:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const fetchGroupsForSubjectAndSemester = async (subjectId, semesterId) => {
+        try {
+            setLoading(true);
+            const response = await axios.get(
+                'http://localhost:8080/api/teacher/groups',
+                {
+                    params: { subjectId, semesterId },
+                    withCredentials: true
+                }
             );
             setGroups(response.data);
             setSelectedGroup('');
         } catch (err) {
             console.error('Ошибка при получении списка групп:', err);
+        } finally {
+            setLoading(false);
         }
     };
 
     const fetchStatistics = async () => {
-        if (dateError || !selectedGroup || !selectedSubject) return;
-
         try {
             setLoading(true);
-            const response = await axios.get('http://localhost:8080/api/teacher/statistics', {
-                params: {
-                    groupId: selectedGroup,
-                    subjectId: selectedSubject,
-                    startDate: startDate.toISOString().split('T')[0],
-                    endDate: endDate.toISOString().split('T')[0]
-                },
-                withCredentials: true
-            });
+            const response = await axios.get(
+                'http://localhost:8080/api/teacher/statistics',
+                {
+                    params: {
+                        groupId: selectedGroup,
+                        subjectId: selectedSubject,
+                        semesterId: selectedSemester
+                    },
+                    withCredentials: true
+                }
+            );
             setStatistics(response.data);
         } catch (err) {
             console.error('Ошибка при получении статистики:', err);
@@ -78,37 +114,16 @@ const TeacherStatistics = () => {
         }
     };
 
+    const handleSemesterChange = (e) => {
+        setSelectedSemester(e.target.value);
+    };
+
     const handleSubjectChange = (e) => {
-        const value = e.target.value;
-        setSelectedSubject(value);
-        setSelectedGroup('');
-        if (value) {
-            fetchGroupsForSubject(value);
-        } else {
-            setGroups([]);
-        }
+        setSelectedSubject(e.target.value);
     };
 
     const handleGroupChange = (e) => {
         setSelectedGroup(e.target.value);
-    };
-
-    const handleStartDateChange = (date) => {
-        if (date > endDate) {
-            setDateError('Дата начала не может быть позже даты окончания');
-        } else {
-            setDateError('');
-            setStartDate(date);
-        }
-    };
-
-    const handleEndDateChange = (date) => {
-        if (date < startDate) {
-            setDateError('Дата окончания не может быть раньше даты начала');
-        } else {
-            setDateError('');
-            setEndDate(date);
-        }
     };
 
     return (
@@ -117,17 +132,40 @@ const TeacherStatistics = () => {
                 Статистика посещаемости
             </h1>
 
+            <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '5px', fontSize: '1.1rem' }}>
+                    Семестр:
+                </label>
+                <select
+                    value={selectedSemester}
+                    onChange={handleSemesterChange}
+                    style={{ ...selectStyle, width: '35%' }}
+                >
+                    <option value="">Выберите семестр</option>
+                    {semesters.map(semester => (
+                        <option key={semester.idSemester} value={semester.idSemester}>
+                            {semester.academicYear} ({semester.type})
+                        </option>
+                    ))}
+                </select>
+            </div>
+
             <div style={{ display: 'flex', gap: '20px', marginBottom: '20px' }}>
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: 2 }}>
                     <label style={{ display: 'block', marginBottom: '5px', fontSize: '1.1rem' }}>
                         Дисциплина:
                     </label>
                     <select
                         value={selectedSubject}
                         onChange={handleSubjectChange}
-                        style={selectStyle}
+                        disabled={!selectedSemester}
+                        style={{
+                            ...selectStyle,
+                            backgroundColor: !selectedSemester ? '#f5f5f5' : 'white',
+                            width: '100%'
+                        }}
                     >
-                        <option value="">Выберите дисциплину</option>
+                        <option value="">{selectedSemester ? 'Выберите дисциплину' : 'Сначала выберите семестр'}</option>
                         {subjects.map(subject => (
                             <option key={subject.id} value={subject.id}>
                                 {subject.name}
@@ -144,9 +182,13 @@ const TeacherStatistics = () => {
                         value={selectedGroup}
                         onChange={handleGroupChange}
                         disabled={!selectedSubject}
-                        style={{ ...selectStyle, backgroundColor: !selectedSubject ? '#f5f5f5' : 'white' }}
+                        style={{
+                            ...selectStyle,
+                            backgroundColor: !selectedSubject ? '#f5f5f5' : 'white',
+                            width: '100%'
+                        }}
                     >
-                        <option value="">{groups.length ? 'Выберите группу' : 'Сначала выберите дисциплину'}</option>
+                        <option value="">{selectedSubject ? 'Выберите группу' : 'Сначала выберите дисциплину'}</option>
                         {groups.map(group => (
                             <option key={group.id} value={group.id}>
                                 {group.name}
@@ -155,23 +197,6 @@ const TeacherStatistics = () => {
                     </select>
                 </div>
             </div>
-
-            <div style={{ display: 'flex', gap: '20px', marginBottom: '20px', alignItems: 'center' }}>
-                <DateFilter
-                    label="Начальная дата"
-                    selected={startDate}
-                    onChange={handleStartDateChange}
-                    maxDate={endDate}
-                />
-                <DateFilter
-                    label="Конечная дата"
-                    selected={endDate}
-                    onChange={handleEndDateChange}
-                    minDate={startDate}
-                />
-            </div>
-
-            {dateError && <ErrorMessage message={dateError} />}
 
             {loading ? (
                 <p>Загрузка данных...</p>
@@ -189,35 +214,6 @@ const selectStyle = {
     border: '1px solid #ddd',
     fontSize: '1rem'
 };
-
-const DateFilter = ({ label, selected, onChange, minDate, maxDate }) => (
-    <div>
-        <label style={{ display: 'block', marginBottom: '5px', fontSize: '1.1rem' }}>
-            {label}:
-        </label>
-        <DatePicker
-            selected={selected}
-            onChange={onChange}
-            minDate={minDate}
-            maxDate={maxDate}
-            locale="ru"
-            customInput={<input style={{ fontSize: '1rem', width: '130px' }} />}
-            dateFormat="dd.MM.yyyy"
-        />
-    </div>
-);
-
-const ErrorMessage = ({ message }) => (
-    <div style={{
-        color: '#e74c3c',
-        marginBottom: '15px',
-        padding: '10px',
-        backgroundColor: '#fadbd8',
-        borderRadius: '4px',
-    }}>
-        {message}
-    </div>
-);
 
 const AttendanceTable = ({ students }) => (
     <div style={{ border: '1px solid #ddd', borderRadius: '8px', overflow: 'hidden' }}>
