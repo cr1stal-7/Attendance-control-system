@@ -27,6 +27,24 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Integer>
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
 
+    @Query("SELECT a FROM Attendance a WHERE " +
+            "a.student = :student AND " +
+            "a.classEntity.curriculumSubject.subject.name = :subject AND " +
+            "a.classEntity.curriculumSubject.semester.idSemester = :semesterId")
+    List<Attendance> findByStudentAndClassEntity_CurriculumSubject_Subject_NameAndClassEntity_CurriculumSubject_Semester_IdSemester(
+            @Param("student") Student student,
+            @Param("subject") String subject,
+            @Param("semesterId") Integer semesterId
+    );
+
+    @Query("SELECT a FROM Attendance a WHERE " +
+            "a.student = :student AND " +
+            "a.classEntity.curriculumSubject.semester.idSemester = :semesterId")
+    List<Attendance> findByStudentAndClassEntity_CurriculumSubject_Semester_IdSemester(
+            @Param("student") Student student,
+            @Param("semesterId") Integer semesterId
+    );
+
     Optional<Attendance> findTopByStudentAndStatus_NameOrderByTimeDesc(
             Student student,
             String statusName

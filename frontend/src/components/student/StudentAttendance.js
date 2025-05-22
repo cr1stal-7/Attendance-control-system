@@ -1,62 +1,82 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
-import { registerLocale, setDefaultLocale } from 'react-datepicker';
-import ru from 'date-fns/locale/ru';
-
-registerLocale('ru', ru);
 
 const StudentAttendance = () => {
     const [attendanceData, setAttendanceData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [viewMode, setViewMode] = useState('general');
     const [selectedSubject, setSelectedSubject] = useState('');
-    const [startDate, setStartDate] = useState(() => {
-        const date = new Date();
-        date.setMonth(date.getMonth() - 1);
-        return date;
-    });
-    const [endDate, setEndDate] = useState(new Date());
+    const [semesters, setSemesters] = useState([]);
+    const [selectedSemester, setSelectedSemester] = useState('');
+    const [subjects, setSubjects] = useState([]);
     const [subjectDetails, setSubjectDetails] = useState(null);
-    const [dateError, setDateError] = useState('');
 
     useEffect(() => {
-        if (viewMode === 'general') {
+        // Загружаем список семестров при монтировании компонента
+        fetchSemesters();
+    }, []);
+
+    useEffect(() => {
+        // При изменении выбранного семестра загружаем список предметов
+        if (selectedSemester) {
+            fetchSubjects(selectedSemester);
+        } else {
+            setSubjects([]);
+        }
+    }, [selectedSemester]);
+
+    useEffect(() => {
+        // При изменении семестра в общем режиме загружаем данные
+        if (viewMode === 'general' && selectedSemester) {
             fetchGeneralAttendance();
         }
-    }, [startDate, endDate]);
+    }, [selectedSemester, viewMode]);
 
-    const handleStartDateChange = (date) => {
-        if (date > endDate) {
-            setDateError('Дата начала не может быть позже даты окончания');
-        } else {
-            setDateError('');
-            setStartDate(date);
+    const fetchSemesters = async () => {
+        try {
+            setLoading(true);
+            const response = await axios.get(
+                'http://localhost:8080/api/student/attendance/semesters',
+                { withCredentials: true }
+            );
+            setSemesters(response.data);
+            if (response.data.length > 0) {
+                setSelectedSemester(response.data[0].idSemester);
+            }
+        } catch (err) {
+            console.error('Ошибка при получении списка семестров:', err);
+        } finally {
+            setLoading(false);
         }
     };
 
-    const handleEndDateChange = (date) => {
-        if (date < startDate) {
-            setDateError('Дата окончания не может быть раньше даты начала');
-        } else {
-            setDateError('');
-            setEndDate(date);
+    const fetchSubjects = async (semesterId) => {
+        try {
+            const response = await axios.get(
+                'http://localhost:8080/api/student/attendance/subjects',
+                {
+                    params: { semesterId },
+                    withCredentials: true
+                }
+            );
+            setSubjects(response.data);
+        } catch (err) {
+            console.error('Ошибка при получении списка предметов:', err);
         }
     };
 
     const fetchGeneralAttendance = async () => {
-        if (dateError) return;
-        
+        if (!selectedSemester) return;
+
         try {
             setLoading(true);
-            const response = await axios.get('http://localhost:8080/api/student/attendance/general', {
-                params: { 
-                    startDate: startDate.toISOString().split('T')[0],
-                    endDate: endDate.toISOString().split('T')[0]
-                },
-                withCredentials: true
-            });
+            const response = await axios.get(
+                'http://localhost:8080/api/student/attendance/general',
+                {
+                    params: { semesterId: selectedSemester },
+                    withCredentials: true
+                }
+            );
             setAttendanceData(response.data);
         } catch (err) {
             console.error('Ошибка при получении данных о посещаемости:', err);
@@ -66,18 +86,20 @@ const StudentAttendance = () => {
     };
 
     const fetchSubjectDetails = async () => {
-        if (!selectedSubject || dateError) return;
-        
+        if (!selectedSubject || !selectedSemester) return;
+
         try {
             setLoading(true);
-            const response = await axios.get('http://localhost:8080/api/student/attendance/details', {
-                params: { 
-                    subject: selectedSubject,
-                    startDate: startDate.toISOString().split('T')[0],
-                    endDate: endDate.toISOString().split('T')[0]
-                },
-                withCredentials: true
-            });
+            const response = await axios.get(
+                'http://localhost:8080/api/student/attendance/details',
+                {
+                    params: {
+                        subject: selectedSubject,
+                        semesterId: selectedSemester
+                    },
+                    withCredentials: true
+                }
+            );
             setSubjectDetails(response.data);
         } catch (err) {
             console.error('Ошибка при получении деталей посещаемости:', err);
@@ -86,24 +108,36 @@ const StudentAttendance = () => {
         }
     };
 
+    const handleSemesterChange = (e) => {
+        setSelectedSemester(e.target.value);
+    };
+
     const handleSubjectChange = (e) => {
         setSelectedSubject(e.target.value);
     };
 
     const handleViewDetails = () => {
-        if (selectedSubject && !dateError) {
+        if (selectedSubject && selectedSemester) {
             fetchSubjectDetails();
         }
     };
 
-    const formatDate = (dateStr) => {
-        const date = new Date(dateStr);
-        return date.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit' });
+    const formatSemesterName = (semester) => {
+        return `${semester.academicYear} (${semester.type})`;
     };
 
-    if (loading && viewMode === 'general') {
+    if (loading && viewMode === 'general' && !attendanceData) {
         return <p>Загрузка данных о посещаемости...</p>;
     }
+
+    const formatDate = (dateString) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+    };
 
     return (
         <>
@@ -111,7 +145,9 @@ const StudentAttendance = () => {
                 color: '#2c3e50',
                 marginBottom: '20px',
                 fontSize: '1.8rem'
-            }}>Посещаемость</h1>
+            }}>
+                Посещаемость
+            </h1>
 
             <div style={{
                 display: 'flex',
@@ -148,55 +184,78 @@ const StudentAttendance = () => {
                 </button>
             </div>
 
-            <div style={{ 
-                display: 'flex', 
-                gap: '20px', 
+            <div style={{
+                display: 'flex',
+                gap: '20px',
                 marginBottom: '20px',
-                alignItems: 'center'
+                alignItems: 'flex-end'
             }}>
                 <div>
-                    <label style={{ display: 'block', marginBottom: '5px', fontSize: '1.1rem' }}>Начальная дата:</label>
-                    <DatePicker
-                        selected={startDate}
-                        onChange={handleStartDateChange}
-                        selectsStart
-                        startDate={startDate}
-                        endDate={endDate}
-                        maxDate={endDate}
-                        locale="ru"
-                        customInput={<input style={{ fontSize: '1rem',  width: '130px'}} />}
-                        dateFormat="dd.MM.yyyy"
-                        className="date-picker-input"
-                    />
+                    <label style={{ display: 'block', marginBottom: '5px', fontSize: '1.1rem' }}>
+                        Семестр:
+                    </label>
+                    <select
+                        value={selectedSemester}
+                        onChange={handleSemesterChange}
+                        style={{
+                            padding: '0.5rem',
+                            borderRadius: '4px',
+                            border: '1px solid #ddd',
+                            fontSize: '1rem',
+                            minWidth: '250px'
+                        }}
+                    >
+                        {semesters.map((semester) => (
+                            <option key={semester.idSemester} value={semester.idSemester}>
+                                {formatSemesterName(semester)}
+                            </option>
+                        ))}
+                    </select>
                 </div>
-                <div>
-                    <label style={{ display: 'block', marginBottom: '5px', fontSize: '1.1rem' }}>Конечная дата:</label>
-                    <DatePicker
-                        selected={endDate}
-                        onChange={handleEndDateChange}
-                        selectsEnd
-                        startDate={startDate}
-                        endDate={endDate}
-                        minDate={startDate}
-                        locale="ru"
-                        customInput={<input style={{ fontSize: '1rem',  width: '130px'}} />}
-                        dateFormat="dd.MM.yyyy"
-                        className="date-picker-input"
-                    />
-                </div>
-            </div>
 
-            {dateError && (
-                <div style={{
-                    color: '#e74c3c',
-                    marginBottom: '15px',
-                    padding: '10px',
-                    backgroundColor: '#fadbd8',
-                    borderRadius: '4px',
-                }}>
-                    {dateError}
-                </div>
-            )}
+                {viewMode === 'bySubject' && (
+                    <>
+                        <div style={{ flex: 1 }}>
+                            <label style={{ display: 'block', marginBottom: '5px', fontSize: '1.1rem' }}>
+                                Дисциплина:
+                            </label>
+                            <select
+                                value={selectedSubject}
+                                onChange={handleSubjectChange}
+                                style={{
+                                    width: '100%',
+                                    padding: '0.5rem',
+                                    borderRadius: '4px',
+                                    border: '1px solid #ddd',
+                                    fontSize: '1rem'
+                                }}
+                            >
+                                <option value="">Выберите дисциплину</option>
+                                {subjects.map((subject) => (
+                                    <option key={subject.idSubject} value={subject.name}>
+                                        {subject.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <button
+                            onClick={handleViewDetails}
+                            disabled={!selectedSubject}
+                            style={{
+                                padding: '9px 20px',
+                                backgroundColor: selectedSubject ? '#3498db' : '#95a5a6',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '6px',
+                                fontSize: '1.1rem',
+                                cursor: selectedSubject ? 'pointer' : 'not-allowed'
+                            }}
+                        >
+                            Показать
+                        </button>
+                    </>
+                )}
+            </div>
 
             {viewMode === 'general' ? (
                 <div style={{
@@ -209,85 +268,45 @@ const StudentAttendance = () => {
                         borderCollapse: 'collapse'
                     }}>
                         <thead>
-                            <tr style={{
-                                backgroundColor: '#2c3e50',
-                                color: 'white'
-                            }}>
-                                <th style={{ padding: '12px', textAlign: 'left' }}>№</th>
-                                <th style={{ padding: '12px', textAlign: 'left' }}>Дисциплина</th>
-                                <th style={{ padding: '12px', textAlign: 'left' }}>Кол-во занятий</th>
-                                <th style={{ padding: '12px', textAlign: 'left' }}>Кол-во пропусков</th>
-                                <th style={{ padding: '12px', textAlign: 'left' }}>Процент посещаемости</th>
-                            </tr>
+                        <tr style={{
+                            backgroundColor: '#2c3e50',
+                            color: 'white'
+                        }}>
+                            <th style={{ padding: '12px', textAlign: 'left' }}>№</th>
+                            <th style={{ padding: '12px', textAlign: 'left' }}>Дисциплина</th>
+                            <th style={{ padding: '12px', textAlign: 'center' }}>Кол-во занятий</th>
+                            <th style={{ padding: '12px', textAlign: 'center' }}>Кол-во пропусков</th>
+                            <th style={{ padding: '12px', textAlign: 'center' }}>Процент посещаемости</th>
+                        </tr>
                         </thead>
                         <tbody>
-                            {attendanceData?.map((item, index) => (
-                                <tr key={index} style={{
-                                    borderBottom: '1px solid #ddd',
-                                    ':hover': {
-                                        backgroundColor: '#f5f5f5'
-                                    }
+                        {attendanceData?.map((item, index) => (
+                            <tr key={index} style={{
+                                borderBottom: '1px solid #ddd',
+                                ':hover': {
+                                    backgroundColor: '#f5f5f5'
+                                }
+                            }}>
+                                <td style={{ padding: '12px' }}>{index + 1}</td>
+                                <td style={{ padding: '12px' }}>{item.subject}</td>
+                                <td style={{ padding: '12px', textAlign: 'center' }}>{item.totalClasses}</td>
+                                <td style={{ padding: '12px', textAlign: 'center' }}>{item.missedClasses}</td>
+                                <td style={{
+                                    padding: '12px',
+                                    textAlign: 'center',
+                                    fontWeight: 'bold',
+                                    color: item.attendancePercentage < 70 ? '#e74c3c' :
+                                        item.attendancePercentage < 90 ? '#f39c12' : '#27ae60'
                                 }}>
-                                    <td style={{ padding: '12px' }}>{index + 1}</td>
-                                    <td style={{ padding: '12px' }}>{item.subject}</td>
-                                    <td style={{ padding: '12px' }}>{item.totalClasses}</td>
-                                    <td style={{ padding: '12px' }}>{item.missedClasses}</td>
-                                    <td style={{ 
-                                        padding: '12px',
-                                        color: item.attendancePercentage < 70 ? '#e74c3c' : 
-                                               item.attendancePercentage < 90 ? '#f39c12' : '#27ae60'
-                                    }}>
-                                        {item.attendancePercentage}%
-                                    </td>
-                                </tr>
-                            ))}
+                                    {item.attendancePercentage}%
+                                </td>
+                            </tr>
+                        ))}
                         </tbody>
                     </table>
                 </div>
             ) : (
                 <>
-                    <div style={{ 
-                        display: 'flex', 
-                        gap: '20px', 
-                        marginBottom: '20px',
-                        alignItems: 'flex-end'
-                    }}>
-                        <div style={{ flex: 1 }}>
-                            <label style={{ display: 'block', marginBottom: '5px', fontSize: '1.1rem' }}>Дисциплина:</label>
-                            <select 
-                                value={selectedSubject}
-                                onChange={handleSubjectChange}
-                                style={{
-                                    width: '100%',
-                                    padding: '0.5rem',
-                                    borderRadius: '4px',
-                                    border: '1px solid #ddd',
-                                    fontSize: '1rem'
-                                }}
-                            >
-                                <option value="">Выберите дисциплину</option>
-                                {attendanceData?.map((item, index) => (
-                                    <option key={index} value={item.subject}>{item.subject}</option>
-                                ))}
-                            </select>
-                        </div>
-                        <button
-                            onClick={handleViewDetails}
-                            disabled={!selectedSubject || dateError}
-                            style={{
-                                padding: '9px 20px',
-                                backgroundColor: selectedSubject && !dateError ? '#3498db' : '#95a5a6',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '6px',
-                                fontSize: '1.1rem',
-                                cursor: selectedSubject && !dateError ? 'pointer' : 'not-allowed'
-                            }}
-                        >
-                            Показать
-                        </button>
-                    </div>
-
                     {loading && viewMode === 'bySubject' ? (
                         <p>Загрузка деталей посещаемости...</p>
                     ) : subjectDetails && (
@@ -302,66 +321,66 @@ const StudentAttendance = () => {
                                 minWidth: '600px'
                             }}>
                                 <thead>
-                                    <tr style={{
-                                        backgroundColor: '#2c3e50',
-                                        color: 'white'
-                                    }}>
-                                        <th style={{ 
-                                            padding: '12px', 
-                                            textAlign: 'left',
-                                            position: 'sticky',
-                                            left: 0,
-                                            backgroundColor: '#2c3e50'
-                                        }}>ФИО</th>
-                                        {subjectDetails.dates.map((date, index) => (
-                                            <th key={index} style={{ 
-                                                padding: '12px', 
-                                                textAlign: 'center',
-                                                minWidth: '80px'
-                                            }}>
-                                                {formatDate(date)}
-                                            </th>
-                                        ))}
-                                        <th style={{ 
-                                            padding: '12px', 
+                                <tr style={{
+                                    backgroundColor: '#2c3e50',
+                                    color: 'white'
+                                }}>
+                                    <th style={{
+                                        padding: '12px',
+                                        textAlign: 'left',
+                                        position: 'sticky',
+                                        left: 0,
+                                        backgroundColor: '#2c3e50'
+                                    }}>ФИО</th>
+                                    {subjectDetails.dates.map((date, index) => (
+                                        <th key={index} style={{
+                                            padding: '12px',
                                             textAlign: 'center',
-                                            minWidth: '100px'
+                                            minWidth: '80px'
                                         }}>
-                                            Посещаемость
+                                            {formatDate(date)}
                                         </th>
-                                    </tr>
+                                    ))}
+                                    <th style={{
+                                        padding: '12px',
+                                        textAlign: 'center',
+                                        minWidth: '100px'
+                                    }}>
+                                        Посещаемость
+                                    </th>
+                                </tr>
                                 </thead>
                                 <tbody>
-                                    <tr style={{
-                                        borderBottom: '1px solid #ddd'
-                                    }}>
-                                        <td style={{ 
-                                            padding: '12px',
-                                            position: 'sticky',
-                                            left: 0,
-                                            backgroundColor: '#f8f9fa'
-                                        }}>{subjectDetails.studentName}</td>
-                                        {subjectDetails.attendances.map((att, index) => (
-                                            <td key={index} style={{ 
-                                                padding: '12px',
-                                                textAlign: 'center',
-                                                color: att.status === 'Отсутствовал' ? '#e74c3c' : 
-                                                       att.status === 'Уважительная причина' ? '#f39c12' : 'inherit'
-                                            }}>
-                                                {att.status === 'Отсутствовал' ? 'ОТ' : 
-                                                 att.status === 'Уважительная причина' ? 'УП' : ''}
-                                            </td>
-                                        ))}
-                                        <td style={{ 
+                                <tr style={{
+                                    borderBottom: '1px solid #ddd'
+                                }}>
+                                    <td style={{
+                                        padding: '12px',
+                                        position: 'sticky',
+                                        left: 0,
+                                        backgroundColor: '#f8f9fa'
+                                    }}>{subjectDetails.studentName}</td>
+                                    {subjectDetails.attendances.map((att, index) => (
+                                        <td key={index} style={{
                                             padding: '12px',
                                             textAlign: 'center',
-                                            color: subjectDetails.attendancePercentage < 70 ? '#e74c3c' : 
-                                                   subjectDetails.attendancePercentage < 90 ? '#f39c12' : '#27ae60',
-                                            fontWeight: 'bold'
+                                            color: att.status === 'Отсутствовал' ? '#e74c3c' :
+                                                att.status === 'Уважительная причина' ? '#f39c12' : 'inherit'
                                         }}>
-                                            {subjectDetails.attendancePercentage}%
+                                            {att.status === 'Отсутствовал' ? 'ОТ' :
+                                                att.status === 'Уважительная причина' ? 'УП' : ''}
                                         </td>
-                                    </tr>
+                                    ))}
+                                    <td style={{
+                                        padding: '12px',
+                                        textAlign: 'center',
+                                        color: subjectDetails.attendancePercentage < 70 ? '#e74c3c' :
+                                            subjectDetails.attendancePercentage < 90 ? '#f39c12' : '#27ae60',
+                                        fontWeight: 'bold'
+                                    }}>
+                                        {subjectDetails.attendancePercentage}%
+                                    </td>
+                                </tr>
                                 </tbody>
                             </table>
                         </div>

@@ -1,18 +1,14 @@
 package com.example.attendance.controller;
 
-import com.example.attendance.model.Attendance;
-import com.example.attendance.model.Student;
+import com.example.attendance.model.*;
 import com.example.attendance.repository.AttendanceRepository;
 import com.example.attendance.repository.StudentRepository;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -28,12 +24,37 @@ public class StudentAttendanceController {
         this.attendanceRepository = attendanceRepository;
     }
 
+    @GetMapping("/semesters")
+    public ResponseEntity<List<Semester>> getStudentSemesters(Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        List<Semester> semesters = studentRepository.findSemestersByStudentEmail(principal.getName());
+        return ResponseEntity.ok(semesters);
+    }
+
+    @GetMapping("/subjects")
+    public ResponseEntity<List<Subject>> getSubjectsForSemester(
+            Principal principal,
+            @RequestParam Integer semesterId
+    ) {
+        if (principal == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        List<Subject> subjects = studentRepository.findSubjectsByStudentAndSemester(
+                principal.getName(),
+                semesterId
+        );
+        return ResponseEntity.ok(subjects);
+    }
+
     @GetMapping("/general")
     public ResponseEntity<List<Map<String, Object>>> getGeneralAttendance(
             Principal principal,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-
+            @RequestParam Integer semesterId
+    ) {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -43,16 +64,12 @@ public class StudentAttendanceController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
-        LocalDateTime startDateTime = startDate.atStartOfDay();
-        LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
+        List<Attendance> attendances = attendanceRepository
+                .findByStudentAndClassEntity_CurriculumSubject_Semester_IdSemester(
+                        student.get(),
+                        semesterId
+                );
 
-        List<Attendance> attendances = attendanceRepository.findByStudentAndClassEntity_DatetimeBetween(
-                student.get(),
-                startDateTime,
-                endDateTime
-        );
-
-        // Группировка по предметам
         Map<String, AttendanceStats> statsBySubject = attendances.stream()
                 .collect(Collectors.groupingBy(
                         att -> att.getClassEntity().getCurriculumSubject().getSubject().getName(),
@@ -71,7 +88,6 @@ public class StudentAttendanceController {
                         )
                 ));
 
-        // Подготовка ответа
         List<Map<String, Object>> response = statsBySubject.entrySet().stream()
                 .map(entry -> {
                     Map<String, Object> stat = new HashMap<>();
@@ -80,7 +96,8 @@ public class StudentAttendanceController {
                     stat.put("missedClasses", entry.getValue().missedClasses);
                     stat.put("attendancePercentage",
                             entry.getValue().totalClasses == 0 ? 0 :
-                                    Math.round((1 - (double) entry.getValue().missedClasses / entry.getValue().totalClasses) * 100));
+                                    Math.round((1 - (double) entry.getValue().missedClasses /
+                                            entry.getValue().totalClasses) * 100));
                     return stat;
                 })
                 .sorted(Comparator.comparing(m -> (String) m.get("subject")))
@@ -93,9 +110,8 @@ public class StudentAttendanceController {
     public ResponseEntity<Map<String, Object>> getAttendanceDetails(
             Principal principal,
             @RequestParam String subject,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
-
+            @RequestParam Integer semesterId
+    ) {
         if (principal == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
@@ -105,27 +121,20 @@ public class StudentAttendanceController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
-        LocalDateTime startDateTime = startDate.atStartOfDay();
-        LocalDateTime endDateTime = endDate.atTime(23, 59, 59);
-
         List<Attendance> attendances = attendanceRepository
-                .findByStudentAndClassEntity_CurriculumSubject_Subject_NameAndClassEntity_DatetimeBetween(
+                .findByStudentAndClassEntity_CurriculumSubject_Subject_NameAndClassEntity_CurriculumSubject_Semester_IdSemester(
                         student.get(),
                         subject,
-                        startDateTime,
-                        endDateTime
+                        semesterId
                 );
 
-        // Сортируем по дате
         attendances.sort(Comparator.comparing(a -> a.getClassEntity().getDatetime()));
 
-        // Получаем список уникальных дат занятий
         List<String> dates = attendances.stream()
                 .map(a -> a.getClassEntity().getDatetime().toLocalDate().toString())
                 .distinct()
                 .collect(Collectors.toList());
 
-        // Собираем данные о посещаемости для каждой даты
         Map<String, String> attendanceByDate = attendances.stream()
                 .collect(Collectors.toMap(
                         a -> a.getClassEntity().getDatetime().toLocalDate().toString(),
@@ -143,9 +152,10 @@ public class StudentAttendanceController {
         int attendancePercentage = totalClasses == 0 ? 0 :
                 (int) Math.round((double) attendedClasses / totalClasses * 100);
 
-        // Формируем ответ
         Map<String, Object> response = new HashMap<>();
-        response.put("studentName", student.get().getSurname() + " " + student.get().getName() + " " + student.get().getSecondName());
+        response.put("studentName", student.get().getSurname() + " " +
+                student.get().getName() + " " + student.get().getSecondName());
+        response.put("subject", subject);
         response.put("dates", dates);
         response.put("attendances", dates.stream()
                 .map(date -> {
@@ -156,6 +166,9 @@ public class StudentAttendanceController {
                 })
                 .collect(Collectors.toList()));
         response.put("attendancePercentage", attendancePercentage);
+        response.put("totalClasses", totalClasses);
+        response.put("attendedClasses", attendedClasses);
+        response.put("missedClasses", totalClasses - attendedClasses);
 
         return ResponseEntity.ok(response);
     }

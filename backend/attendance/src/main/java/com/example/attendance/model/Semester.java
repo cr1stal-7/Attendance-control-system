@@ -1,5 +1,6 @@
 package com.example.attendance.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -21,5 +22,6 @@ public class Semester {
     private String type;
 
     @OneToMany(mappedBy = "semester")
+    @JsonIgnore
     private List<CurriculumSubject> curriculumSubjects;
 }
