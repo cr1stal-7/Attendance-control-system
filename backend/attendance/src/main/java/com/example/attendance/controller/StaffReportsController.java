@@ -11,6 +11,7 @@ import java.security.Principal;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/api/staff")
@@ -22,19 +23,22 @@ public class StaffReportsController {
     private final GroupRepository groupRepository;
     private final CurriculumSubjectRepository curriculumSubjectRepository;
     private final ClassRepository classRepository;
+    private final ControlPointRecordRepository controlPointRecordRepository;
 
     public StaffReportsController(EmployeeRepository employeeRepository,
                                   AttendanceRepository attendanceRepository,
                                   StudentRepository studentRepository,
                                   GroupRepository groupRepository,
                                   CurriculumSubjectRepository curriculumSubjectRepository,
-                                  ClassRepository classRepository) {
+                                  ClassRepository classRepository,
+                                  ControlPointRecordRepository controlPointRecordRepository) {
         this.employeeRepository = employeeRepository;
         this.attendanceRepository = attendanceRepository;
         this.studentRepository = studentRepository;
         this.groupRepository = groupRepository;
         this.curriculumSubjectRepository = curriculumSubjectRepository;
         this.classRepository = classRepository;
+        this.controlPointRecordRepository = controlPointRecordRepository;
     }
 
     @GetMapping("/faculty")
@@ -233,5 +237,57 @@ public class StaffReportsController {
         }
 
         return ResponseEntity.ok(reports);
+    }
+    @GetMapping("/long-absence")
+    public ResponseEntity<List<LongAbsenceDTO>> getLongAbsenceReport(
+            Principal principal,
+            @RequestParam(defaultValue = "14") int daysThreshold) {
+
+        if (principal == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        Optional<Employee> employee = employeeRepository.findByEmailWithDetails(principal.getName());
+        if (employee.isEmpty() || employee.get().getDepartment() == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        LocalDate checkDate = LocalDate.now().minusDays(daysThreshold);
+        List<StudentGroup> groups = groupRepository.findByDepartment(employee.get().getDepartment());
+        List<LongAbsenceDTO> result = new ArrayList<>();
+
+        for (StudentGroup group : groups) {
+            List<Student> students = studentRepository.findByGroupId(group.getIdGroup());
+
+            for (Student student : students) {
+                Optional<ControlPointRecord> lastEntry = controlPointRecordRepository
+                        .findTopByStudentAndDirectionOrderByDatetimeDesc(student, "Вход");
+
+                Optional<Attendance> lastClass = attendanceRepository
+                        .findTopByStudentAndStatus_NameOrderByTimeDesc(student, "Присутствовал");
+
+                boolean hasRecentClass = lastClass
+                        .filter(att -> att.getTime().toLocalDate().isAfter(checkDate))
+                        .isPresent();
+
+                if (!hasRecentClass) {
+                    LongAbsenceDTO dto = new LongAbsenceDTO();
+                    dto.setSurname(student.getSurname());
+                    dto.setName(student.getName());
+                    dto.setSecondName(student.getSecondName());
+                    dto.setGroupName(group.getName());
+
+                    lastClass.ifPresent(att ->
+                            dto.setLastClassDate(att.getTime().toLocalDate()));
+
+                    lastEntry.ifPresent(entry ->
+                            dto.setLastDate(entry.getDatetime().toLocalDate()));
+
+                    result.add(dto);
+                }
+            }
+        }
+
+        return ResponseEntity.ok(result);
     }
 }

@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface AttendanceRepository extends JpaRepository<Attendance, Integer> {
     @Query("SELECT a FROM Attendance a WHERE a.student = :student AND a.classEntity.datetime BETWEEN :start AND :end")
@@ -25,4 +26,9 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Integer>
             @Param("subject") String subject,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end);
+
+    Optional<Attendance> findTopByStudentAndStatus_NameOrderByTimeDesc(
+            Student student,
+            String statusName
+    );
 }
