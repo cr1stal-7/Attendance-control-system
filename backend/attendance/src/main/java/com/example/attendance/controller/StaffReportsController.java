@@ -3,12 +3,10 @@ package com.example.attendance.controller;
 import com.example.attendance.dto.*;
 import com.example.attendance.model.*;
 import com.example.attendance.repository.*;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -21,23 +19,23 @@ public class StaffReportsController {
     private final StudentRepository studentRepository;
     private final GroupRepository groupRepository;
     private final CurriculumSubjectRepository curriculumSubjectRepository;
-    private final ClassRepository classRepository;
     private final ControlPointRecordRepository controlPointRecordRepository;
+    private final SemesterRepository semesterRepository;
 
     public StaffReportsController(EmployeeRepository employeeRepository,
                                   AttendanceRepository attendanceRepository,
                                   StudentRepository studentRepository,
                                   GroupRepository groupRepository,
                                   CurriculumSubjectRepository curriculumSubjectRepository,
-                                  ClassRepository classRepository,
-                                  ControlPointRecordRepository controlPointRecordRepository) {
+                                  ControlPointRecordRepository controlPointRecordRepository,
+                                  SemesterRepository semesterRepository) {
         this.employeeRepository = employeeRepository;
         this.attendanceRepository = attendanceRepository;
         this.studentRepository = studentRepository;
         this.groupRepository = groupRepository;
         this.curriculumSubjectRepository = curriculumSubjectRepository;
-        this.classRepository = classRepository;
         this.controlPointRecordRepository = controlPointRecordRepository;
+        this.semesterRepository = semesterRepository;
     }
 
     @GetMapping("/faculty")
@@ -73,11 +71,29 @@ public class StaffReportsController {
         return ResponseEntity.ok(groupDTOs);
     }
 
+    @GetMapping("/semesters")
+    public ResponseEntity<List<SemesterDTO>> getSemesters(Principal principal) {
+        if (principal == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        Optional<Employee> employee = employeeRepository.findByEmailWithDetails(principal.getName());
+        if (employee.isEmpty() || employee.get().getDepartment() == null) {
+            return ResponseEntity.notFound().build();
+        }
+
+        List<Semester> semesters = semesterRepository.findAllOrderedByAcademicYearAndTypeDesc();
+        List<SemesterDTO> semesterDTOs = semesters.stream()
+                .map(semester -> new SemesterDTO(semester.getIdSemester(), semester.getAcademicYear(), semester.getType()))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(semesterDTOs);
+    }
+
     @GetMapping("/reports/by-group")
     public ResponseEntity<List<Map<String, Object>>> getGroupReports(
             @RequestParam Integer groupId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+            @RequestParam Integer semesterId) {
 
         Optional<StudentGroup> groupOpt = groupRepository.findById(groupId);
         if (groupOpt.isEmpty()) {
@@ -91,7 +107,8 @@ public class StaffReportsController {
             return ResponseEntity.ok(Collections.emptyList());
         }
 
-        List<Subject> subjects = curriculumSubjectRepository.findSubjectsByCurriculumId(curriculum.getIdCurriculum());
+        List<Subject> subjects = curriculumSubjectRepository
+                .findSubjectsByCurriculumIdAndSemesterId(curriculum.getIdCurriculum(), semesterId);
         if (subjects.isEmpty()) {
             return ResponseEntity.ok(Collections.emptyList());
         }
@@ -107,23 +124,16 @@ public class StaffReportsController {
 
             for (Subject subject : subjects) {
                 List<Attendance> attendances = attendanceRepository
-                        .findByStudentAndClassEntity_CurriculumSubject_Subject_NameAndClassEntity_DatetimeBetween(
+                        .findByStudentAndClassEntity_CurriculumSubject_Subject_IdSubjectAndClassEntity_CurriculumSubject_Semester_IdSemester(
                                 student,
-                                subject.getName(),
-                                startDate.atStartOfDay(),
-                                endDate.atStartOfDay().plusDays(1)
+                                subject.getIdSubject(),
+                                semesterId
                         );
 
-                boolean hasClasses = classRepository.existsByCurriculumSubject_SubjectAndDatetimeBetween(
-                        subject,
-                        startDate.atStartOfDay(),
-                        endDate.atStartOfDay().plusDays(1)
-                );
-
-                if (!hasClasses) {
-                    studentReport.put(subject.getName(), "н/з");
+                /* if (attendances.isEmpty()) {
+                    studentReport.put(subject.getName(), 0); // или "-" если предпочитаете
                     continue;
-                }
+                }*/
 
                 int totalClasses = attendances.size();
                 int attendedClasses = (int) attendances.stream()
@@ -144,8 +154,7 @@ public class StaffReportsController {
     @GetMapping("/reports/by-faculty")
     public ResponseEntity<List<Map<String, Object>>> getFacultyReports(
             Principal principal,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+            @RequestParam Integer semesterId) {
 
         if (principal == null) {
             return ResponseEntity.status(401).build();
@@ -159,18 +168,13 @@ public class StaffReportsController {
         List<StudentGroup> groups = groupRepository.findByDepartment(employee.get().getDepartment());
         List<Map<String, Object>> reports = new ArrayList<>();
 
-        Map<String, Set<Integer>> groupSubjectsMap = new HashMap<>(); // groupName -> subjectIds
         Set<Subject> facultySubjects = new HashSet<>();
-
         for (StudentGroup group : groups) {
-            Set<Integer> groupSubjectIds = new HashSet<>();
             if (group.getCurriculum() != null) {
                 List<Subject> groupSubjects = curriculumSubjectRepository
-                        .findSubjectsByCurriculumId(group.getCurriculum().getIdCurriculum());
-                groupSubjects.forEach(s -> groupSubjectIds.add(s.getIdSubject()));
+                        .findSubjectsByCurriculumIdAndSemesterId(group.getCurriculum().getIdCurriculum(), semesterId);
                 facultySubjects.addAll(groupSubjects);
             }
-            groupSubjectsMap.put(group.getName(), groupSubjectIds);
         }
 
         if (facultySubjects.isEmpty()) {
@@ -180,7 +184,22 @@ public class StaffReportsController {
         for (StudentGroup group : groups) {
             Map<String, Object> groupReport = new HashMap<>();
             groupReport.put("group", group.getName());
-            Set<Integer> groupSubjectIds = groupSubjectsMap.get(group.getName());
+
+            Curriculum curriculum = group.getCurriculum();
+            if (curriculum == null) {
+                for (Subject subject : facultySubjects) {
+                    groupReport.put(subject.getName(), "-");
+                }
+                reports.add(groupReport);
+                continue;
+            }
+
+            List<Subject> groupSubjects = curriculumSubjectRepository
+                    .findSubjectsByCurriculumIdAndSemesterId(curriculum.getIdCurriculum(), semesterId);
+
+            Set<Integer> groupSubjectIds = groupSubjects.stream()
+                    .map(Subject::getIdSubject)
+                    .collect(Collectors.toSet());
 
             List<Student> students = studentRepository.findByGroupId(group.getIdGroup());
 
@@ -190,28 +209,20 @@ public class StaffReportsController {
                     continue;
                 }
 
-                boolean hasClasses = classRepository.existsByCurriculumSubject_SubjectAndGroupsAndDatetimeBetween(
-                        subject,
-                        group,
-                        startDate.atStartOfDay(),
-                        endDate.atStartOfDay().plusDays(1)
-                );
-
-                if (!hasClasses) {
-                    groupReport.put(subject.getName(), "н/з");
+               /* if (attendances.isEmpty()) {
+                    studentReport.put(subject.getName(), 0); // или "-" если предпочитаете
                     continue;
-                }
+                }*/
 
                 double totalAttendancePercentage = 0;
                 int studentsWithAttendance = 0;
 
                 for (Student student : students) {
                     List<Attendance> attendances = attendanceRepository
-                            .findByStudentAndClassEntity_CurriculumSubject_Subject_NameAndClassEntity_DatetimeBetween(
+                            .findByStudentAndClassEntity_CurriculumSubject_Subject_IdSubjectAndClassEntity_CurriculumSubject_Semester_IdSemester(
                                     student,
-                                    subject.getName(),
-                                    startDate.atStartOfDay(),
-                                    endDate.atStartOfDay().plusDays(1)
+                                    subject.getIdSubject(),
+                                    semesterId
                             );
 
                     int totalClasses = attendances.size();
@@ -237,6 +248,7 @@ public class StaffReportsController {
 
         return ResponseEntity.ok(reports);
     }
+
     @GetMapping("/long-absence")
     public ResponseEntity<List<LongAbsenceDTO>> getLongAbsenceReport(
             Principal principal,
@@ -251,7 +263,6 @@ public class StaffReportsController {
             return ResponseEntity.notFound().build();
         }
 
-        LocalDate checkDate = LocalDate.now().minusDays(daysThreshold);
         List<StudentGroup> groups = groupRepository.findByDepartment(employee.get().getDepartment());
         List<LongAbsenceDTO> result = new ArrayList<>();
 
@@ -265,23 +276,12 @@ public class StaffReportsController {
                 Optional<Attendance> lastClass = attendanceRepository
                         .findTopByStudentAndStatus_NameOrderByTimeDesc(student, "Присутствовал");
 
-                boolean hasRecentClass = lastClass
-                        .filter(att -> att.getTime().toLocalDate().isAfter(checkDate))
-                        .isPresent();
-
-                if (!hasRecentClass) {
+                if (lastClass.isEmpty() || lastEntry.isEmpty()) {
                     LongAbsenceDTO dto = new LongAbsenceDTO();
                     dto.setSurname(student.getSurname());
                     dto.setName(student.getName());
                     dto.setSecondName(student.getSecondName());
                     dto.setGroupName(group.getName());
-
-                    lastClass.ifPresent(att ->
-                            dto.setLastClassDate(att.getTime().toLocalDate()));
-
-                    lastEntry.ifPresent(entry ->
-                            dto.setLastDate(entry.getDatetime().toLocalDate()));
-
                     result.add(dto);
                 }
             }

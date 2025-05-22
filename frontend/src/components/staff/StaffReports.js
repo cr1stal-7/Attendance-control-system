@@ -1,23 +1,13 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import DatePicker from 'react-datepicker';
-import 'react-datepicker/dist/react-datepicker.css';
-import { registerLocale, setDefaultLocale } from 'react-datepicker';
-import ru from 'date-fns/locale/ru';
-
-registerLocale('ru', ru);
 
 const StaffReports = () => {
     const [reports, setReports] = useState([]);
     const [loading, setLoading] = useState(false);
     const [groups, setGroups] = useState([]);
     const [selectedGroup, setSelectedGroup] = useState('');
-    const [startDate, setStartDate] = useState(() => {
-        const date = new Date();
-        date.setMonth(date.getMonth() - 1);
-        return date;
-    });
-    const [endDate, setEndDate] = useState(new Date());
+    const [semesters, setSemesters] = useState([]);
+    const [selectedSemester, setSelectedSemester] = useState('');
     const [dateError, setDateError] = useState('');
     const [reportType, setReportType] = useState('byFaculty');
     const [facultyName, setFacultyName] = useState('');
@@ -25,14 +15,16 @@ const StaffReports = () => {
     useEffect(() => {
         fetchFacultyData();
         fetchGroups();
+        fetchSemesters();
     }, []);
 
     useEffect(() => {
-        if ((reportType === 'byFaculty') ||
-            (reportType === 'byGroup' && selectedGroup)) {
+        if ((reportType === 'byFaculty' ||
+                (reportType === 'byGroup' && selectedGroup)) &&
+            selectedSemester) {
             fetchReports();
         }
-    }, [reportType, selectedGroup, startDate, endDate]);
+    }, [reportType, selectedGroup, selectedSemester]);
 
     const fetchFacultyData = async () => {
         try {
@@ -57,8 +49,23 @@ const StaffReports = () => {
         }
     };
 
+    const fetchSemesters = async () => {
+        try {
+            const response = await axios.get(
+                'http://localhost:8080/api/staff/semesters',
+                { withCredentials: true }
+            );
+            setSemesters(response.data);
+            if (response.data.length > 0) {
+                setSelectedSemester(response.data[0].idSemester);
+            }
+        } catch (err) {
+            console.error('Ошибка при получении списка семестров:', err);
+        }
+    };
+
     const fetchReports = async () => {
-        if (dateError || (reportType === 'byGroup' && !selectedGroup)) return;
+        if (dateError || (reportType === 'byGroup' && !selectedGroup) || !selectedSemester) return;
 
         try {
             setLoading(true);
@@ -69,8 +76,7 @@ const StaffReports = () => {
             const response = await axios.get(endpoint, {
                 params: {
                     groupId: reportType === 'byGroup' ? selectedGroup : null,
-                    startDate: startDate.toISOString().split('T')[0],
-                    endDate: endDate.toISOString().split('T')[0]
+                    semesterId: selectedSemester
                 },
                 withCredentials: true
             });
@@ -86,22 +92,8 @@ const StaffReports = () => {
         setSelectedGroup(e.target.value);
     };
 
-    const handleStartDateChange = (date) => {
-        if (date > endDate) {
-            setDateError('Дата начала не может быть позже даты окончания');
-        } else {
-            setDateError('');
-            setStartDate(date);
-        }
-    };
-
-    const handleEndDateChange = (date) => {
-        if (date < startDate) {
-            setDateError('Дата окончания не может быть раньше даты начала');
-        } else {
-            setDateError('');
-            setEndDate(date);
-        }
+    const handleSemesterChange = (e) => {
+        setSelectedSemester(e.target.value);
     };
 
     const handleReportTypeChange = (type) => {
@@ -168,85 +160,62 @@ const StaffReports = () => {
                 </button>
             </div>
 
-            {reportType === 'byGroup' && (
-                <div style={{ marginBottom: '20px' }}>
-                    <label style={{ display: 'block', marginBottom: '5px', fontSize: '1.1rem' }}>
-                        Группа:
-                    </label>
-                    <select
-                        value={selectedGroup}
-                        onChange={handleGroupChange}
-                        style={{
-                            width: '100%',
-                            maxWidth: '300px',
-                            padding: '0.5rem',
-                            borderRadius: '4px',
-                            border: '1px solid #ddd',
-                            fontSize: '1rem'
-                        }}
-                    >
-                        <option value="">Выберите группу</option>
-                        {groups.map(group => (
-                            <option key={group.id} value={group.id}>
-                                {group.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-            )}
-
             <div style={{
                 display: 'flex',
                 gap: '20px',
                 marginBottom: '20px',
-                alignItems: 'center'
+                alignItems: 'flex-end'
             }}>
                 <div>
                     <label style={{ display: 'block', marginBottom: '5px', fontSize: '1.1rem' }}>
-                        Начальная дата:
+                        Семестр:
                     </label>
-                    <DatePicker
-                        selected={startDate}
-                        onChange={handleStartDateChange}
-                        selectsStart
-                        startDate={startDate}
-                        endDate={endDate}
-                        maxDate={endDate}
-                        locale="ru"
-                        customInput={<input style={{ fontSize: '1rem', width: '130px' }} />}
-                        dateFormat="dd.MM.yyyy"
-                    />
+                    <select
+                        value={selectedSemester}
+                        onChange={handleSemesterChange}
+                        style={{
+                            width: '100%',
+                            padding: '0.5rem',
+                            borderRadius: '4px',
+                            border: '1px solid #ddd',
+                            minWidth: '250px',
+                            fontSize: '1rem'
+                        }}
+                    >
+                        {semesters.map(semester => (
+                            <option key={semester.idSemester} value={semester.idSemester}>
+                                {semester.academicYear} ({semester.type})
+                            </option>
+                        ))}
+                    </select>
                 </div>
 
-                <div>
-                    <label style={{ display: 'block', marginBottom: '5px', fontSize: '1.1rem' }}>
-                        Конечная дата:
-                    </label>
-                    <DatePicker
-                        selected={endDate}
-                        onChange={handleEndDateChange}
-                        selectsEnd
-                        startDate={startDate}
-                        endDate={endDate}
-                        minDate={startDate}
-                        locale="ru"
-                        customInput={<input style={{ fontSize: '1rem', width: '130px' }} />}
-                        dateFormat="dd.MM.yyyy"
-                    />
-                </div>
+                {reportType === 'byGroup' && (
+                    <div>
+                        <label style={{ display: 'block', marginBottom: '5px', fontSize: '1.1rem' }}>
+                            Группа:
+                        </label>
+                        <select
+                            value={selectedGroup}
+                            onChange={handleGroupChange}
+                            style={{
+                                width: '100%',
+                                padding: '0.5rem',
+                                borderRadius: '4px',
+                                border: '1px solid #ddd',
+                                fontSize: '1rem'
+                            }}
+                        >
+                            <option value="">Выберите группу</option>
+                            {groups.map(group => (
+                                <option key={group.id} value={group.id}>
+                                    {group.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                )}
             </div>
-
-            {dateError && (
-                <div style={{
-                    color: '#e74c3c',
-                    marginBottom: '15px',
-                    padding: '10px',
-                    backgroundColor: '#fadbd8',
-                    borderRadius: '4px',
-                }}>
-                    {dateError}
-                </div>
-            )}
 
             {loading ? (
                 <p>Загрузка данных...</p>
@@ -286,12 +255,12 @@ const StaffReports = () => {
                                         <td key={idx} style={{
                                             padding: '12px',
                                             textAlign: 'center',
-                                            color: value === '-' || value === 'н/з' ? 'inherit' :
+                                            color: value === '-' ? 'inherit' :
                                                 parseInt(value) < 70 ? '#e74c3c' :
                                                 parseInt(value) < 90 ? '#f39c12' : '#27ae60',
                                             fontWeight: 'bold'
                                         }}>
-                                            {value === '-' ? '-' : value === 'н/з' ? 'н/з' : `${value}%`}
+                                            {value === '-' ? '-': `${value}%`}
                                         </td>
                                     );
                                 })}
@@ -332,12 +301,12 @@ const StaffReports = () => {
                                         <td key={idx} style={{
                                             padding: '12px',
                                             textAlign: 'center',
-                                            color: value === '-' || value === 'н/з' ? 'inherit' :
+                                            color: value === '-' ? 'inherit' :
                                                 parseInt(value) < 70 ? '#e74c3c' :
-                                                    parseInt(value) < 90 ? '#f39c12' : '#27ae60',
+                                                parseInt(value) < 90 ? '#f39c12' : '#27ae60',
                                             fontWeight: 'bold'
                                         }}>
-                                            {value === '-' ? '-' : value === 'н/з' ? 'н/з' : `${value}%`}
+                                            {value === '-' ? '-' : `${value}%`}
                                         </td>
                                     );
                                 })}

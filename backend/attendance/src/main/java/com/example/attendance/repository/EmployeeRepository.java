@@ -17,22 +17,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     @Query("SELECT e FROM Employee e LEFT JOIN FETCH e.department WHERE e.email = :email")
     Optional<Employee> findByEmailWithDetails(@Param("email") String email);
 
-    @Query("SELECT e FROM Employee e LEFT JOIN FETCH e.classes WHERE e.email = :email")
-    Optional<Employee> findByEmailWithClasses(@Param("email") String email);
-
-    @Query("SELECT DISTINCT cs.subject FROM AcademicClass ac " +
-            "JOIN ac.curriculumSubject cs " +
-            "WHERE ac.employee.idEmployee = :teacherId")
-    List<Subject> findSubjectsByTeacher(@Param("teacherId") Integer teacherId);
-
-    @Query("SELECT DISTINCT g FROM AcademicClass ac " +
-            "JOIN ac.groups g " +
-            "JOIN ac.curriculumSubject cs " +
-            "WHERE ac.employee.idEmployee = :teacherId AND cs.subject.idSubject = :subjectId")
-    List<StudentGroup> findGroupsByTeacherAndSubject(
-            @Param("teacherId") Integer teacherId,
-            @Param("subjectId") Integer subjectId);
-
     @Query("SELECT DISTINCT cs.semester FROM AcademicClass ac " +
             "JOIN ac.curriculumSubject cs " +
             "WHERE ac.employee.idEmployee = :teacherId")

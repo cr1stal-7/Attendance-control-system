@@ -11,6 +11,10 @@ import java.util.List;
 public interface CurriculumSubjectRepository extends JpaRepository<CurriculumSubject, Integer> {
 
     @Query("SELECT DISTINCT cs.subject FROM CurriculumSubject cs " +
-            "WHERE cs.curriculum.idCurriculum = :curriculumId")
-    List<Subject> findSubjectsByCurriculumId(@Param("curriculumId") Integer curriculumId);
+            "WHERE cs.curriculum.idCurriculum = :curriculumId " +
+            "AND cs.semester.idSemester = :semesterId")
+    List<Subject> findSubjectsByCurriculumIdAndSemesterId(
+            @Param("curriculumId") Integer curriculumId,
+            @Param("semesterId") Integer semesterId
+    );
 }

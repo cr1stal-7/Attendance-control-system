@@ -139,7 +139,7 @@ const TeacherStatistics = () => {
                 <select
                     value={selectedSemester}
                     onChange={handleSemesterChange}
-                    style={{ ...selectStyle, width: '35%' }}
+                    style={{ ...selectStyle, maxWidth: '250px' }}
                 >
                     <option value="">Выберите семестр</option>
                     {semesters.map(semester => (
