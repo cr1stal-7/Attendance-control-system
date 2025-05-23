@@ -3,6 +3,7 @@ package com.example.attendance.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -26,7 +27,7 @@ public class ControlPointRecord {
     private ControlPoint controlPoint;
 
     @ManyToOne
-    @JoinColumn(name = "id_student")
+    @JoinColumn(name = "id_student", referencedColumnName = "id_student")
     private Student student;
 
     @OneToMany(mappedBy = "record")

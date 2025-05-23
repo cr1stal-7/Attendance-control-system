@@ -126,9 +126,19 @@ const TeacherStatistics = () => {
         setSelectedGroup(e.target.value);
     };
 
+    const sortStudentsAlphabetically = (students) => {
+        return [...students].sort((a, b) => {
+
+            const lastNameCompare = a.lastName.localeCompare(b.lastName);
+            if (lastNameCompare !== 0) return lastNameCompare;
+
+            return a.firstName.localeCompare(b.firstName);
+        });
+    };
+
     return (
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
-            <h1 style={{ color: '#2c3e50', marginBottom: '20px', fontSize: '1.8rem' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+            <h1 style={{ color: '#2c3e50', marginBottom: '10px', fontSize: '1.8rem' }}>
                 Статистика посещаемости
             </h1>
 
@@ -201,7 +211,11 @@ const TeacherStatistics = () => {
             {loading ? (
                 <p>Загрузка данных...</p>
             ) : selectedGroup ? (
-                <AttendanceTable students={statistics.students} />
+                <AttendanceTable
+                    students={statistics.students.length > 0
+                        ? sortStudentsAlphabetically(statistics.students)
+                        : []}
+                />
             ) : null}
         </div>
     );

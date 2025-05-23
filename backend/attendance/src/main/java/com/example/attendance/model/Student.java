@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Entity
 @Table(name = "student")
@@ -40,4 +41,12 @@ public class Student {
     @JoinColumn(name = "id_group")
     @JsonIgnore
     private StudentGroup group;
+
+    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<Attendance> attendances;
+
+    @OneToMany(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private List<ControlPointRecord> controlPointRecords;
 }
