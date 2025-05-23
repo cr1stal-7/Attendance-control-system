@@ -1,9 +1,6 @@
 package com.example.attendance.repository;
 
-import com.example.attendance.model.Employee;
-import com.example.attendance.model.Semester;
-import com.example.attendance.model.StudentGroup;
-import com.example.attendance.model.Subject;
+import com.example.attendance.model.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -53,4 +50,8 @@ public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
             @Param("groupId") Integer groupId,
             @Param("subjectId") Integer subjectId,
             @Param("semesterId") Integer semesterId);
+
+    boolean existsByEmail(String email);
+
+    List<Employee> findByDepartment(Department department);
 }

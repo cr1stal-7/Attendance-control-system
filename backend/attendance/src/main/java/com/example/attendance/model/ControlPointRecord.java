@@ -32,9 +32,4 @@ public class ControlPointRecord {
 
     @OneToMany(mappedBy = "record")
     private List<Attendance> attendances;
-
-    public class ControlPointRecordId implements Serializable {
-        private Integer idRecord;
-        private Integer student;
-    }
 }

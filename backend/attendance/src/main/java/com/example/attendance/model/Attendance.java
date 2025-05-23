@@ -37,8 +37,4 @@ public class Attendance {
     public boolean getPresent() {
         return status != null && "Присутствовал".equals(status.getName());
     }
-    public class AttendanceId implements Serializable {
-        private Integer idAttendance;
-        private Integer student;
-    }
 }

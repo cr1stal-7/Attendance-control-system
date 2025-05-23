@@ -114,6 +114,14 @@ const StaffReports = () => {
         return Array.from(subjects);
     };
 
+    const getSortedStudents = () => {
+        return [...reports].sort((a, b) => {
+            const surnameCompare = a.surname.localeCompare(b.surname);
+            if (surnameCompare !== 0) return surnameCompare;
+            return a.name.localeCompare(b.name);
+        });
+    };
+
     const subjects = getAllSubjects();
 
     return (
@@ -240,7 +248,7 @@ const StaffReports = () => {
                         </tr>
                         </thead>
                         <tbody>
-                        {reports.map((report, index) => (
+                        {getSortedStudents().map((report, index) => (
                             <tr key={index} style={{
                                 borderBottom: '1px solid #ddd',
                                 ':hover': { backgroundColor: '#f5f5f5' }
