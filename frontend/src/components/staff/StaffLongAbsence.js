@@ -38,9 +38,15 @@ const LongAbsenceReport = () => {
         }
     };
 
-    const formatDate = (date) => {
+    const formatDateTime = (date) => {
         if (!date) return '-';
-        return new Date(date).toLocaleDateString('ru-RU');
+        return new Date(date).toLocaleString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
     };
 
     return (
@@ -125,7 +131,7 @@ const LongAbsenceReport = () => {
                                     textAlign: 'center',
                                     fontWeight: item.lastClassDate ? 'normal' : 'bold'
                                 }}>
-                                    {formatDate(item.lastClassDate)}
+                                    {formatDateTime(item.lastClassDate)}
                                 </td>
                                 <td style={{
                                     padding: '12px',
@@ -133,7 +139,7 @@ const LongAbsenceReport = () => {
                                     textAlign: 'center',
                                     fontWeight: item.lastDate ? 'normal' : 'bold'
                                 }}>
-                                    {formatDate(item.lastDate)}
+                                    {formatDateTime(item.lastDate)}
                                 </td>
                             </tr>
                         ))}

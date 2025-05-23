@@ -1,7 +1,7 @@
 package com.example.attendance.dto;
 
 import lombok.Data;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 public class LongAbsenceDTO {
@@ -9,6 +9,6 @@ public class LongAbsenceDTO {
     private String name;
     private String secondName;
     private String groupName;
-    private LocalDate lastClassDate;
-    private LocalDate lastDate;
+    private LocalDateTime lastClassDate;
+    private LocalDateTime lastDate;
 }
