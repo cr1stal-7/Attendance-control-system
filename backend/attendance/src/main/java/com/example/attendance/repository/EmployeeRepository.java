@@ -11,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
-public interface EmployeeRepository extends JpaRepository<Employee, Long> {
+public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
     Optional<Employee> findByEmail(String email);
 
     @Query("SELECT e FROM Employee e LEFT JOIN FETCH e.department WHERE e.email = :email")

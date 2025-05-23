@@ -10,7 +10,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
-public interface StudentRepository extends JpaRepository<Student, Long> {
+public interface StudentRepository extends JpaRepository<Student, Integer> {
 
     Optional<Student> findByEmail(String email);
 
@@ -38,4 +38,7 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
 
     @Query("SELECT s FROM Student s WHERE s.group.idGroup = :groupId")
     List<Student> findByGroupId(@Param("groupId") Integer groupId);
+
+    boolean existsByEmail(String email);
+    boolean existsByStudentCardId(Integer studentCardId);
 }

@@ -36,7 +36,7 @@ const TeacherSettings = () => {
         <>
             <h1 style={{
                 color: '#2c3e50',
-                marginBottom: '20px',
+                marginBottom: '10px',
                 fontSize: '1.8rem'
             }}>Настройки</h1>
             

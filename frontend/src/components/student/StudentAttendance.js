@@ -134,8 +134,7 @@ const StudentAttendance = () => {
         const date = new Date(dateString);
         return date.toLocaleDateString('ru-RU', {
             day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
+            month: '2-digit'
         });
     };
 
@@ -143,7 +142,7 @@ const StudentAttendance = () => {
         <>
             <h1 style={{
                 color: '#2c3e50',
-                marginBottom: '20px',
+                marginBottom: '10px',
                 fontSize: '1.8rem'
             }}>
                 Посещаемость

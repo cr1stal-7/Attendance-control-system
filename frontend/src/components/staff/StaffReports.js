@@ -117,7 +117,7 @@ const StaffReports = () => {
     const subjects = getAllSubjects();
 
     return (
-        <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '20px' }}>
+        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
             <h1 style={{
                 color: '#2c3e50',
                 marginBottom: '10px',
