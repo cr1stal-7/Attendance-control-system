@@ -143,7 +143,7 @@ public class TeacherController {
                         int totalClasses = classDates.size();
                         int attendedClasses = (int) studentAttendances.stream()
                                 .filter(a -> a.getStatus() == null ||
-                                        !("Отсутствовал".equals(a.getStatus().getName()) ||
+                                        !("Отсутствие".equals(a.getStatus().getName()) ||
                                                 "Уважительная причина".equals(a.getStatus().getName())))
                                 .count();
                         int attendancePercentage = totalClasses == 0 ? 0 :
@@ -248,19 +248,19 @@ public class TeacherController {
                     .collect(Collectors.toMap(
                             a -> a.getStudent().getIdStudent(),
                             a -> {
-                                if (a.getStatus() == null) return "Присутствует";
+                                if (a.getStatus() == null) return "Отсутствие";
                                 switch (a.getStatus().getIdStatus()) {
-                                    case 1: return "Присутствует";
-                                    case 2: return "Отсутствует";
+                                    case 1: return "Присутствие";
+                                    case 2: return "Отсутствие";
                                     case 3: return "Уважительная причина";
-                                    default: return "Присутствует";
+                                    default: return "Отсутствие";
                                 }
                             }
                     ));
 
             List<StudentAttendanceFormDTO> studentDTOs = students.stream()
                     .map(student -> {
-                        String status = attendanceStatusMap.getOrDefault(student.getIdStudent(), "Присутствует");
+                        String status = attendanceStatusMap.getOrDefault(student.getIdStudent(), "Отсутствие");
                         return new StudentAttendanceFormDTO(
                                 student.getIdStudent(),
                                 student.getSurname(),
@@ -282,6 +282,30 @@ public class TeacherController {
             response.put("students", studentDTOs);
 
             return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @PostMapping("/attendance")
+    public ResponseEntity<Void> saveAttendance(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody List<AttendanceRequestDTO> attendanceRequests
+    ) {
+        try {
+            Integer teacherId = getTeacherIdFromUserDetails(userDetails);
+            if (teacherId == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            for (AttendanceRequestDTO request : attendanceRequests) {
+                if (!teacherService.isClassBelongsToTeacher(request.getClassId(), teacherId)) {
+                    return ResponseEntity.badRequest().build();
+                }
+            }
+
+            teacherService.saveAttendance(attendanceRequests);
+            return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }

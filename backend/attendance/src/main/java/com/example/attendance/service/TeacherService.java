@@ -76,10 +76,10 @@ public class TeacherService {
 
             AttendanceStatus status = new AttendanceStatus();
             switch (request.getStatus()) {
-                case "Присутствовал":
+                case "Присутствие":
                     status.setIdStatus(1);
                     break;
-                case "Отсутствовал":
+                case "Отсутствие":
                     status.setIdStatus(2);
                     break;
                 case "Уважительная причина":

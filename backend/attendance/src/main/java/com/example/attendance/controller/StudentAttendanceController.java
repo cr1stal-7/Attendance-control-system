@@ -80,7 +80,7 @@ public class StudentAttendanceController {
                                     stats.totalClasses = list.size();
                                     stats.missedClasses = (int) list.stream()
                                             .filter(a -> a.getStatus() != null &&
-                                                    ("Отсутствовал".equals(a.getStatus().getName()) ||
+                                                    ("Отсутствие".equals(a.getStatus().getName()) ||
                                                             "Уважительная причина".equals(a.getStatus().getName())))
                                             .count();
                                     return stats;
@@ -146,7 +146,7 @@ public class StudentAttendanceController {
         long totalClasses = dates.size();
         long attendedClasses = attendances.stream()
                 .filter(a -> a.getStatus() == null ||
-                        !("Отсутствовал".equals(a.getStatus().getName()) ||
+                        !("Отсутствие".equals(a.getStatus().getName()) ||
                                 "Уважительная причина".equals(a.getStatus().getName())))
                 .count();
         int attendancePercentage = totalClasses == 0 ? 0 :

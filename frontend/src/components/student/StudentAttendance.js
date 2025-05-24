@@ -12,12 +12,10 @@ const StudentAttendance = () => {
     const [subjectDetails, setSubjectDetails] = useState(null);
 
     useEffect(() => {
-        // Загружаем список семестров при монтировании компонента
         fetchSemesters();
     }, []);
 
     useEffect(() => {
-        // При изменении выбранного семестра загружаем список предметов
         if (selectedSemester) {
             fetchSubjects(selectedSemester);
         } else {
@@ -26,7 +24,6 @@ const StudentAttendance = () => {
     }, [selectedSemester]);
 
     useEffect(() => {
-        // При изменении семестра в общем режиме загружаем данные
         if (viewMode === 'general' && selectedSemester) {
             fetchGeneralAttendance();
         }
@@ -363,10 +360,10 @@ const StudentAttendance = () => {
                                         <td key={index} style={{
                                             padding: '12px',
                                             textAlign: 'center',
-                                            color: att.status === 'Отсутствовал' ? '#e74c3c' :
+                                            color: att.status === 'Отсутствие' ? '#e74c3c' :
                                                 att.status === 'Уважительная причина' ? '#f39c12' : 'inherit'
                                         }}>
-                                            {att.status === 'Отсутствовал' ? 'ОТ' :
+                                            {att.status === 'Отсутствие' ? 'ОТ' :
                                                 att.status === 'Уважительная причина' ? 'УП' : ''}
                                         </td>
                                     ))}

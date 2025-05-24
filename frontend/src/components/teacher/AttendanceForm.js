@@ -21,18 +21,17 @@ const AttendanceForm = () => {
                     })
                     .map(student => ({
                         ...student,
-                        status: student.status || 'Присутствовал',
-                        uid: `${student.idStudent}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+                        status: student.status || 'Отсутствие',
                     }));
                 setStudents(sortedStudents);
             })
             .catch(error => console.error('Error fetching attendance data:', error));
     }, [classId]);
 
-    const handleStatusChange = (uid, newStatus) => {
+    const handleStatusChange = (studentId, newStatus) => {
         setStudents(prevStudents =>
             prevStudents.map(student =>
-                student.uid === uid
+                student.studentId === studentId
                     ? { ...student, status: newStatus }
                     : student
             )
@@ -42,13 +41,14 @@ const AttendanceForm = () => {
     const saveAttendance = () => {
         setIsSaving(true);
         const attendanceData = students.map(student => ({
-            studentId: student.idStudent,
-            classId,
-            present: student.status === 'Присутствовал',
-            reason: student.status === 'Присутствовал' ? null : student.status
+            studentId: student.studentId,
+            classId: parseInt(classId),
+            status: student.status
         }));
 
-        axios.post('/api/teacher/attendance', attendanceData, { withCredentials: true })
+        axios.post('http://localhost:8080/api/teacher/attendance', attendanceData, {
+            withCredentials: true
+        })
             .then(() => alert('Посещаемость сохранена!'))
             .catch(error => {
                 console.error('Error saving attendance:', error);
@@ -120,7 +120,7 @@ const AttendanceForm = () => {
                             <td style={tableCellStyle}>
                                 <select
                                     value={student.status}
-                                    onChange={(e) => handleStatusChange(student.uid, e.target.value)}
+                                    onChange={(e) => handleStatusChange(student.studentId, e.target.value)}
                                     style={{
                                         padding: '0.4rem',
                                         fontSize: '1rem',
@@ -129,8 +129,8 @@ const AttendanceForm = () => {
                                         border: '1px solid #ddd'
                                     }}
                                 >
-                                    <option value="Присутствовал">Присутствовал</option>
-                                    <option value="Отсутствовал">Отсутствовал</option>
+                                    <option value="Присутствие">Присутствие</option>
+                                    <option value="Отсутствие">Отсутствие</option>
                                     <option value="Уважительная причина">Уважительная причина</option>
                                 </select>
                             </td>

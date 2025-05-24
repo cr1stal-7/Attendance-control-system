@@ -270,11 +270,11 @@ const AttendanceTable = ({ students }) => {
                                 style={{
                                     ...tableCellStyle,
                                     textAlign: 'center',
-                                    color: att.status === 'Отсутствовал' ? '#e74c3c' :
+                                    color: att.status === 'Отсутствие' ? '#e74c3c' :
                                         att.status === 'Уважительная причина' ? '#f39c12' : 'inherit'
                                 }}
                             >
-                                {att.status === 'Отсутствовал' ? 'ОТ' :
+                                {att.status === 'Отсутствие' ? 'ОТ' :
                                     att.status === 'Уважительная причина' ? 'УП' : ''}
                             </td>
                         ))}
