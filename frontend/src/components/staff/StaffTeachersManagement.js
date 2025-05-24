@@ -72,7 +72,7 @@ const StaffTeachersManagement = ({ departments, positions, facultyName }) => {
             surname: teacher.surname,
             name: teacher.name,
             secondName: teacher.secondName || '',
-            birthDate: teacher.birthDate || '',
+            birthDate: formatDateForInput(teacher.birthDate) || '',
             password: '',
             email: teacher.email || '',
             positionId: teacher.positionId || '',
@@ -130,6 +130,32 @@ const StaffTeachersManagement = ({ departments, positions, facultyName }) => {
             if (surnameCompare !== 0) return surnameCompare;
             return a.name.localeCompare(b.name);
         });
+    };
+
+    const formatDate = (dateString) => {
+        if (!dateString) return '-';
+        try {
+            const date = new Date(dateString);
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}.${month}.${year}`;
+        } catch (e) {
+            return dateString;
+        }
+    };
+
+    const formatDateForInput = (dateString) => {
+        if (!dateString) return '';
+        try {
+            const date = new Date(dateString);
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        } catch (e) {
+            return '';
+        }
     };
 
     return (
@@ -204,7 +230,7 @@ const StaffTeachersManagement = ({ departments, positions, facultyName }) => {
                                         <td style={{ padding: '12px' }}>{teacher.name}</td>
                                         <td style={{ padding: '12px' }}>{teacher.secondName || '-'}</td>
                                         <td style={{ padding: '12px' }}>{teacher.email}</td>
-                                        <td style={{ padding: '12px' }}>{teacher.birthDate}</td>
+                                        <td style={{ padding: '12px' }}>{formatDate(teacher.birthDate)}</td>
                                         <td style={{ padding: '12px' }}>
                                             {positions.find(p => p.id === teacher.positionId)?.name || '-'}
                                         </td>

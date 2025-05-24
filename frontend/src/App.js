@@ -7,6 +7,7 @@ import TeacherDashboard from './components/teacher/TeacherDashboard';
 import TeacherAttendance from './components/teacher/TeacherAttendance';
 import TeacherSettings from './components/teacher/TeacherSettings';
 import TeacherStatistics from './components/teacher/TeacherStatistics';
+import AttendanceForm from './components/teacher/AttendanceForm';
 import StaffLayout from './components/staff/StaffLayout';
 import StaffReports from './components/staff/StaffReports';
 import StaffAddUsers from './components/staff/StaffAddUsers';
@@ -37,8 +38,9 @@ function App() {
         <Route path="/teacher" element={<TeacherLayout />}>
           <Route path="dashboard" element={<TeacherDashboard />} />
           <Route path="attendance" element={<TeacherAttendance />} />
+          <Route path="attendance/:classId" element={<AttendanceForm />} />
           <Route path="settings" element={<TeacherSettings />} />
-           <Route path="statistics" element={<TeacherStatistics />} />
+          <Route path="statistics" element={<TeacherStatistics />} />
           <Route index element={<TeacherDashboard />} />
         </Route>
         <Route path="/student" element={<StudentLayout />}>
