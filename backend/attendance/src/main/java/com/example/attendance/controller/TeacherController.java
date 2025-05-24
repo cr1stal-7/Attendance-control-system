@@ -118,36 +118,63 @@ public class TeacherController {
                 return ResponseEntity.noContent().build();
             }
 
-            List<StudentAttendanceDTO> statistics = students.stream()
+            List<Attendance> groupAttendances = attendanceRepository
+                    .findByGroupAndSubjectAndSemester(groupId, subjectId, semesterId);
+
+            List<String> classDates = groupAttendances.stream()
+                    .map(a -> a.getClassEntity().getDatetime().toLocalDate().toString())
+                    .distinct()
+                    .sorted()
+                    .collect(Collectors.toList());
+
+            List<Map<String, Object>> statistics = students.stream()
                     .map(student -> {
-                        List<Attendance> attendances = attendanceRepository
-                                .findByStudentAndClassEntity_CurriculumSubject_Subject_IdSubjectAndClassEntity_CurriculumSubject_Semester_IdSemester(
-                                        student, subjectId, semesterId);
+                        List<Attendance> studentAttendances = groupAttendances.stream()
+                                .filter(a -> a.getStudent().getIdStudent().equals(student.getIdStudent()))
+                                .collect(Collectors.toList());
 
-                        int totalClasses = attendances.size();
-                        int missedClasses = (int) attendances.stream()
-                                .filter(a -> !a.getPresent())
+                        Map<String, String> attendanceByDate = studentAttendances.stream()
+                                .collect(Collectors.toMap(
+                                        a -> a.getClassEntity().getDatetime().toLocalDate().toString(),
+                                        a -> a.getStatus() != null ? a.getStatus().getName() : "",
+                                        (existing, replacement) -> existing
+                                ));
+
+                        int totalClasses = classDates.size();
+                        int attendedClasses = (int) studentAttendances.stream()
+                                .filter(a -> a.getStatus() == null ||
+                                        !("Отсутствовал".equals(a.getStatus().getName()) ||
+                                                "Уважительная причина".equals(a.getStatus().getName())))
                                 .count();
+                        int attendancePercentage = totalClasses == 0 ? 0 :
+                                (int) Math.round((double) attendedClasses / totalClasses * 100);
 
-                        Integer percentage = totalClasses > 0 ?
-                                (int) Math.round(100.0 - (missedClasses * 100.0 / totalClasses)) :
-                                null;
+                        Map<String, Object> studentStats = new HashMap<>();
+                        studentStats.put("studentId", student.getIdStudent());
+                        studentStats.put("lastName", student.getSurname());
+                        studentStats.put("firstName", student.getName());
+                        studentStats.put("middleName", student.getSecondName());
+                        studentStats.put("totalClasses", totalClasses);
+                        studentStats.put("missedClasses", totalClasses - attendedClasses);
+                        studentStats.put("attendancePercentage", attendancePercentage);
 
-                        return new StudentAttendanceDTO(
-                                student.getIdStudent(),
-                                student.getSurname(),
-                                student.getName(),
-                                student.getSecondName(),
-                                totalClasses,
-                                missedClasses,
-                                percentage
-                        );
+                        studentStats.put("attendanceByDate", classDates.stream()
+                                .map(date -> {
+                                    Map<String, String> att = new HashMap<>();
+                                    att.put("date", date);
+                                    att.put("status", attendanceByDate.getOrDefault(date, ""));
+                                    return att;
+                                })
+                                .collect(Collectors.toList()));
+
+                        return studentStats;
                     })
                     .collect(Collectors.toList());
 
             Map<String, Object> response = new HashMap<>();
             response.put("subjectId", subjectId);
             response.put("semesterId", semesterId);
+            response.put("classDates", classDates);
             response.put("students", statistics);
 
             return ResponseEntity.ok(response);

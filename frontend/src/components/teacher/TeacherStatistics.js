@@ -229,43 +229,81 @@ const selectStyle = {
     fontSize: '1rem'
 };
 
-const AttendanceTable = ({ students }) => (
-    <div style={{ border: '1px solid #ddd', borderRadius: '8px', overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-            <tr style={{ backgroundColor: '#2c3e50', color: 'white' }}>
-                <th style={tableHeaderStyle}>№</th>
-                <th style={tableHeaderStyle}>Фамилия</th>
-                <th style={tableHeaderStyle}>Имя</th>
-                <th style={tableHeaderStyle}>Отчество</th>
-                <th style={{ ...tableHeaderStyle, textAlign: 'center' }}>Кол-во занятий</th>
-                <th style={{ ...tableHeaderStyle, textAlign: 'center' }}>Кол-во пропусков</th>
-                <th style={{ ...tableHeaderStyle, textAlign: 'center' }}>Процент посещаемости</th>
-            </tr>
-            </thead>
-            <tbody>
-            {students.map((student, index) => (
-                <tr key={student.studentId} style={tableRowStyle}>
-                    <td style={tableCellStyle}>{index + 1}</td>
-                    <td style={tableCellStyle}>{student.lastName}</td>
-                    <td style={tableCellStyle}>{student.firstName}</td>
-                    <td style={tableCellStyle}>{student.middleName}</td>
-                    <td style={{ ...tableCellStyle, textAlign: 'center' }}>{student.totalClasses}</td>
-                    <td style={{ ...tableCellStyle, textAlign: 'center' }}>{student.missedClasses}</td>
-                    <td style={{
-                        ...tableCellStyle,
-                        textAlign: 'center',
-                        color: student.percentage !== null ? getPercentageColor(student.percentage) : 'inherit',
-                        fontWeight: 'bold'
-                    }}>
-                        {student.percentage !== null ? `${student.percentage}%` : '-'}
-                    </td>
+const AttendanceTable = ({ students }) => {
+    if (!students || students.length === 0) return <p>Нет данных о студентах</p>;
+
+    const dates = students[0]?.attendanceByDate?.map(item => item.date) || [];
+
+    return (
+        <div style={{ border: '1px solid #ddd', borderRadius: '8px', overflow: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
+                <thead>
+                <tr style={{ backgroundColor: '#2c3e50', color: 'white' }}>
+                    <th style={tableHeaderStyle}>№</th>
+                    <th style={tableHeaderStyle}>Фамилия</th>
+                    <th style={tableHeaderStyle}>Имя</th>
+                    <th style={tableHeaderStyle}>Отчество</th>
+
+                    {/* Колонки для каждой даты */}
+                    {dates.map((date, index) => (
+                        <th key={index} style={{ ...tableHeaderStyle, textAlign: 'center', minWidth: '60px' }}>
+                            {formatDate(date)}
+                        </th>
+                    ))}
+
+                    <th style={{ ...tableHeaderStyle, textAlign: 'center' }}>Кол-во занятий</th>
+                    <th style={{ ...tableHeaderStyle, textAlign: 'center' }}>Кол-во пропусков</th>
+                    <th style={{ ...tableHeaderStyle, textAlign: 'center' }}>Процент посещаемости</th>
                 </tr>
-            ))}
-            </tbody>
-        </table>
-    </div>
-);
+                </thead>
+                <tbody>
+                {students.map((student, index) => (
+                    <tr key={student.studentId} style={tableRowStyle}>
+                        <td style={tableCellStyle}>{index + 1}</td>
+                        <td style={tableCellStyle}>{student.lastName}</td>
+                        <td style={tableCellStyle}>{student.firstName}</td>
+                        <td style={tableCellStyle}>{student.middleName}</td>
+
+                        {student.attendanceByDate?.map((att, idx) => (
+                            <td
+                                key={idx}
+                                style={{
+                                    ...tableCellStyle,
+                                    textAlign: 'center',
+                                    color: att.status === 'Отсутствовал' ? '#e74c3c' :
+                                        att.status === 'Уважительная причина' ? '#f39c12' : 'inherit'
+                                }}
+                            >
+                                {att.status === 'Отсутствовал' ? 'ОТ' :
+                                    att.status === 'Уважительная причина' ? 'УП' : ''}
+                            </td>
+                        ))}
+
+                        <td style={{ ...tableCellStyle, textAlign: 'center' }}>{student.totalClasses}</td>
+                        <td style={{ ...tableCellStyle, textAlign: 'center' }}>{student.missedClasses}</td>
+                        <td style={{
+                            ...tableCellStyle,
+                            textAlign: 'center',
+                            color: getPercentageColor(student.attendancePercentage),
+                            fontWeight: 'bold'
+                        }}>
+                            {student.attendancePercentage}%
+                        </td>
+                    </tr>
+                ))}
+                </tbody>
+            </table>
+        </div>
+    );
+};
+
+const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ru-RU', {
+        day: '2-digit',
+        month: '2-digit'
+    });
+};
 
 const tableHeaderStyle = {
     padding: '12px',

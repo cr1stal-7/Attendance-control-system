@@ -54,4 +54,15 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Integer>
     Optional<Attendance> findByStudentIdAndClassId(
             @Param("studentId") Integer studentId,
             @Param("classId") Integer classId);
+
+    @Query("SELECT a FROM Attendance a " +
+            "JOIN a.student s " +
+            "JOIN s.group g " +
+            "WHERE g.idGroup = :groupId " +
+            "AND a.classEntity.curriculumSubject.subject.idSubject = :subjectId " +
+            "AND a.classEntity.curriculumSubject.semester.idSemester = :semesterId")
+    List<Attendance> findByGroupAndSubjectAndSemester(
+            @Param("groupId") Integer groupId,
+            @Param("subjectId") Integer subjectId,
+            @Param("semesterId") Integer semesterId);
 }
