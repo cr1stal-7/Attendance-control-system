@@ -1,5 +1,6 @@
 package com.example.attendance.repository;
 
+import com.example.attendance.model.AcademicClass;
 import com.example.attendance.model.Attendance;
 import com.example.attendance.model.Student;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -44,4 +45,13 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Integer>
             @Param("subjectId") Integer subjectId,
             @Param("semesterId") Integer semesterId
     );
+
+    List<Attendance> findByClassEntity(AcademicClass classEntity);
+
+    @Query("SELECT a FROM Attendance a " +
+            "WHERE a.student.idStudent = :studentId " +
+            "AND a.classEntity.idClass = :classId")
+    Optional<Attendance> findByStudentIdAndClassId(
+            @Param("studentId") Integer studentId,
+            @Param("classId") Integer classId);
 }

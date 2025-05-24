@@ -71,7 +71,7 @@ const StaffStudentsManagement = ({ groups, facultyName }) => {
             surname: student.surname,
             name: student.name,
             secondName: student.secondName || '',
-            birthDate: student.birthDate || '',
+            birthDate: formatDateForInput(student.birthDate) || '',
             password: '',
             email: student.email || '',
             studentCardId: student.studentCardId || ''
@@ -153,6 +153,32 @@ const StaffStudentsManagement = ({ groups, facultyName }) => {
         });
     };
 
+    const formatDate = (dateString) => {
+        if (!dateString) return '-';
+        try {
+            const date = new Date(dateString);
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}.${month}.${year}`;
+        } catch (e) {
+            return dateString;
+        }
+    };
+
+    const formatDateForInput = (dateString) => {
+        if (!dateString) return '';
+        try {
+            const date = new Date(dateString);
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        } catch (e) {
+            return '';
+        }
+    };
+
     return (
         <div>
             <div style={{ flex: 1 }}>
@@ -226,13 +252,13 @@ const StaffStudentsManagement = ({ groups, facultyName }) => {
                                         <td style={{ padding: '12px' }}>{student.secondName || '-'}</td>
                                         <td style={{ padding: '12px' }}>{student.email}</td>
                                         <td style={{ padding: '12px' }}>{student.studentCardId}</td>
-                                        <td style={{ padding: '12px' }}>{student.birthDate}</td>
+                                        <td style={{ padding: '12px' }}>{formatDate(student.birthDate)}</td>
                                         <td style={{ padding: '12px' }}>
                                             <button
                                                 onClick={() => handleEditStudent(student)}
                                                 style={{
                                                     padding: '0.3rem 0.6rem',
-                                                    marginRight: '8px',
+                                                    marginBottom: '5px',
                                                     backgroundColor: '#f39c12',
                                                     color: 'white',
                                                     border: 'none',

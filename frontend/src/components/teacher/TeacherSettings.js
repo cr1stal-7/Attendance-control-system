@@ -44,7 +44,7 @@ const TeacherSettings = () => {
                 border: '1px solid #ddd',
                 borderRadius: '8px',
                 padding: '20px',
-                marginBottom: '30px',
+                marginBottom: '10px',
                 backgroundColor: '#fff'
             }}>
                 <h2 style={{
