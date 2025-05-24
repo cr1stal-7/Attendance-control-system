@@ -18,11 +18,7 @@ const AttendanceForm = () => {
                         const lastNameCompare = a.surname.localeCompare(b.surname);
                         if (lastNameCompare !== 0) return lastNameCompare;
                         return a.name.localeCompare(b.name);
-                    })
-                    .map(student => ({
-                        ...student,
-                        status: student.status || 'Отсутствие',
-                    }));
+                    });
                 setStudents(sortedStudents);
             })
             .catch(error => console.error('Error fetching attendance data:', error));

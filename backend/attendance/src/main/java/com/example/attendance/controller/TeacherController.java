@@ -3,6 +3,7 @@ package com.example.attendance.controller;
 import com.example.attendance.dto.*;
 import com.example.attendance.model.*;
 import com.example.attendance.repository.*;
+import com.example.attendance.service.RecordAnalyzer;
 import com.example.attendance.service.TeacherService;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +12,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -244,6 +247,20 @@ public class TeacherController {
             List<Student> students = studentRepository.findByGroupId(group.getIdGroup());
             List<Attendance> existingAttendances = attendanceRepository.findByClassEntity(classEntity);
 
+            List<Integer> studentIds = students.stream()
+                    .map(Student::getIdStudent)
+                    .collect(Collectors.toList());
+            List<ControlPointRecord> allRecords = attendanceRepository.findRecordsByStudentsAndDate(
+                    studentIds, classEntity.getDatetime()
+            );
+
+            Map<Integer, List<ControlPointRecord>> recordsByStudent = allRecords.stream()
+                    .collect(Collectors.groupingBy(r -> r.getStudent().getIdStudent()));
+
+            LocalDateTime classStartTime = classEntity.getDatetime();
+            LocalDateTime classEndTime = classStartTime.plusHours(1).plusMinutes(30);
+            int minAttendanceMinutes = 60;
+
             Map<Integer, String> attendanceStatusMap = existingAttendances.stream()
                     .collect(Collectors.toMap(
                             a -> a.getStudent().getIdStudent(),
@@ -260,7 +277,26 @@ public class TeacherController {
 
             List<StudentAttendanceFormDTO> studentDTOs = students.stream()
                     .map(student -> {
-                        String status = attendanceStatusMap.getOrDefault(student.getIdStudent(), "Отсутствие");
+                        if (attendanceStatusMap.containsKey(student.getIdStudent())) {
+                            return new StudentAttendanceFormDTO(
+                                    student.getIdStudent(),
+                                    student.getSurname(),
+                                    student.getName(),
+                                    student.getSecondName(),
+                                    attendanceStatusMap.get(student.getIdStudent())
+                            );
+                        }
+
+                        List<ControlPointRecord> studentRecords = recordsByStudent.getOrDefault(
+                                student.getIdStudent(), Collections.emptyList());
+
+                        String status = RecordAnalyzer.determineAttendanceStatus(
+                                studentRecords,
+                                classStartTime,
+                                classEndTime,
+                                minAttendanceMinutes
+                        );
+
                         return new StudentAttendanceFormDTO(
                                 student.getIdStudent(),
                                 student.getSurname(),

@@ -2,6 +2,7 @@ package com.example.attendance.repository;
 
 import com.example.attendance.model.AcademicClass;
 import com.example.attendance.model.Attendance;
+import com.example.attendance.model.ControlPointRecord;
 import com.example.attendance.model.Student;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -65,4 +66,13 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Integer>
             @Param("groupId") Integer groupId,
             @Param("subjectId") Integer subjectId,
             @Param("semesterId") Integer semesterId);
+
+    @Query("SELECT cpr FROM ControlPointRecord cpr " +
+            "WHERE cpr.student.idStudent IN :studentIds " +
+            "AND FUNCTION('DATE', cpr.datetime) = FUNCTION('DATE', :classDatetime) " +
+            "ORDER BY cpr.student.idStudent, cpr.datetime")
+    List<ControlPointRecord> findRecordsByStudentsAndDate(
+            @Param("studentIds") List<Integer> studentIds,
+            @Param("classDatetime") LocalDateTime classDatetime
+    );
 }
