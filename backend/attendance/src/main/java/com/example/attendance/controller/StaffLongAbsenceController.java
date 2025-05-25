@@ -58,7 +58,7 @@ public class StaffLongAbsenceController {
                         .findTopByStudentAndDirectionOrderByDatetimeDesc(student, "Вход");
 
                 Optional<Attendance> lastClass = attendanceRepository
-                        .findTopByStudentAndStatus_NameOrderByTimeDesc(student, "Присутствовал");
+                        .findTopByStudentAndStatus_NameOrderByTimeDesc(student, "Присутствие");
 
                 if (lastClass.isEmpty() || lastClass.get().getTime().isBefore(thresholdDateTime)) {
                     LongAbsenceDTO dto = new LongAbsenceDTO();

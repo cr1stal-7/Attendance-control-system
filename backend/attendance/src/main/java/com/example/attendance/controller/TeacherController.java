@@ -259,7 +259,7 @@ public class TeacherController {
 
             LocalDateTime classStartTime = classEntity.getDatetime();
             LocalDateTime classEndTime = classStartTime.plusHours(1).plusMinutes(30);
-            int minAttendanceMinutes = 60;
+            int minAttendanceMinutes = 90;
 
             Map<Integer, String> attendanceStatusMap = existingAttendances.stream()
                     .collect(Collectors.toMap(
