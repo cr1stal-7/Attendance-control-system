@@ -80,7 +80,11 @@ const TeacherAttendance = () => {
                     withCredentials: true
                 }
             );
-            setClasses(response.data);
+            const sortedClasses = response.data.sort((a, b) => {
+                return new Date(a.date) - new Date(b.date);
+            });
+
+            setClasses(sortedClasses);
         } catch (err) {
             console.error('Ошибка при получении списка занятий:', err);
         } finally {

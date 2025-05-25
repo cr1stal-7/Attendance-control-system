@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -33,12 +34,7 @@ public class StudentGroup {
     @JsonIgnore
     private List<Student> students;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "groups")
     @JsonIgnore
-    @JoinTable(
-            name = "group_class",
-            joinColumns = @JoinColumn(name = "id_group"),
-            inverseJoinColumns = @JoinColumn(name = "id_class")
-    )
-    private List<AcademicClass> classes;
+    private List<AcademicClass> classes = new ArrayList<>();
 }

@@ -137,7 +137,7 @@ public class StaffReportsController {
                         .filter(Attendance::getPresent)
                         .count();
                 int attendancePercentage = totalClasses > 0 ?
-                        (int) ((double) attendedClasses / totalClasses * 100) : 0;
+                        (int) Math.round((double) attendedClasses / totalClasses * 100) : 0;
 
                 studentReport.put(subject.getName(), attendancePercentage);
             }
@@ -228,8 +228,8 @@ public class StaffReportsController {
                     int attendedClasses = (int) attendances.stream()
                             .filter(Attendance::getPresent)
                             .count();
-                    double studentAttendancePercentage =
-                            (double) attendedClasses / totalClasses * 100;
+                    int studentAttendancePercentage =
+                            (int) Math.round((double) attendedClasses / totalClasses * 100);
 
                     totalAttendancePercentage += studentAttendancePercentage;
                     studentsWithAttendance++;

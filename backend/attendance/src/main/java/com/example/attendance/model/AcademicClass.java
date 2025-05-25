@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -20,10 +21,7 @@ public class AcademicClass {
     private LocalDateTime datetime;
 
     @ManyToOne
-    @JoinColumns({
-            @JoinColumn(name = "id_curriculum_subject", referencedColumnName = "id_curriculum_subject"),
-            @JoinColumn(name = "id_curriculum", referencedColumnName = "id_curriculum")
-    })
+    @JoinColumn(name = "id_curriculum_subject")
     private CurriculumSubject curriculumSubject;
 
     @ManyToOne
@@ -41,7 +39,11 @@ public class AcademicClass {
     @OneToMany(mappedBy = "classEntity")
     private List<Attendance> attendances;
 
-    @ManyToMany(mappedBy = "classes")
-    @JsonIgnore
-    private List<StudentGroup> groups;
+    @ManyToMany
+    @JoinTable(
+            name = "group_class",
+            joinColumns = @JoinColumn(name = "id_class"),
+            inverseJoinColumns = @JoinColumn(name = "id_group")
+    )
+    private List<StudentGroup> groups = new ArrayList<>();
 }

@@ -244,7 +244,6 @@ const AttendanceTable = ({ students }) => {
                     <th style={tableHeaderStyle}>Имя</th>
                     <th style={tableHeaderStyle}>Отчество</th>
 
-                    {/* Колонки для каждой даты */}
                     {dates.map((date, index) => (
                         <th key={index} style={{ ...tableHeaderStyle, textAlign: 'center', minWidth: '60px' }}>
                             {formatDate(date)}
@@ -262,7 +261,7 @@ const AttendanceTable = ({ students }) => {
                         <td style={tableCellStyle}>{index + 1}</td>
                         <td style={tableCellStyle}>{student.lastName}</td>
                         <td style={tableCellStyle}>{student.firstName}</td>
-                        <td style={tableCellStyle}>{student.middleName}</td>
+                        <td style={tableCellStyle}>{student.middleName || '-'}</td>
 
                         {student.attendanceByDate?.map((att, idx) => (
                             <td

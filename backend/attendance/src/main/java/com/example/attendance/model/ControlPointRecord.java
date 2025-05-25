@@ -29,7 +29,4 @@ public class ControlPointRecord {
     @ManyToOne
     @JoinColumn(name = "id_student", referencedColumnName = "id_student")
     private Student student;
-
-    @OneToMany(mappedBy = "record")
-    private List<Attendance> attendances;
 }

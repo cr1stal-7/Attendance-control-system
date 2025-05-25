@@ -1,5 +1,6 @@
 package com.example.attendance.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -22,8 +23,10 @@ public class Classroom {
 
     @ManyToOne
     @JoinColumn(name = "id_building")
+    @JsonIgnore
     private Building building;
 
     @OneToMany(mappedBy = "classroom")
+    @JsonIgnore
     private List<AcademicClass> classes;
 }

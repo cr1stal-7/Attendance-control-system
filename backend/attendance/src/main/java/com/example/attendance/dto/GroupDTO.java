@@ -1,14 +1,11 @@
 package com.example.attendance.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
+@AllArgsConstructor
 public class GroupDTO {
     private Integer id;
     private String name;
-
-    public GroupDTO(Integer id, String name) {
-        this.id = id;
-        this.name = name;
-    }
 }

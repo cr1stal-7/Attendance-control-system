@@ -36,6 +36,6 @@ public class Curriculum {
     @OneToMany(mappedBy = "curriculum")
     private List<StudentGroup> studentGroups;
 
-    @OneToMany(mappedBy = "curriculum")
+    @OneToMany(mappedBy = "curriculum", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CurriculumSubject> curriculumSubjects;
 }

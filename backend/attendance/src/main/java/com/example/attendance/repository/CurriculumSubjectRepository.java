@@ -17,4 +17,7 @@ public interface CurriculumSubjectRepository extends JpaRepository<CurriculumSub
             @Param("curriculumId") Integer curriculumId,
             @Param("semesterId") Integer semesterId
     );
+
+    @Query("SELECT DISTINCT cs.subject FROM CurriculumSubject cs WHERE cs.semester.idSemester = :semesterId")
+    List<Subject> findSubjectsBySemesterId(@Param("semesterId") Integer semesterId);
 }
