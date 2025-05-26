@@ -505,6 +505,7 @@ const StaffAddClasses = () => {
                                         style={{
                                             padding: '0.3rem 0.6rem',
                                             marginRight: '5px',
+                                            marginBottom: '5px',
                                             backgroundColor: '#f39c12',
                                             color: 'white',
                                             border: 'none',

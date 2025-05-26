@@ -1,7 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Login from './components/Login';
 import Welcome from './components/Welcome';
-import AdminDashboard from './components/AdminDashboard';
 import TeacherLayout from './components/teacher/TeacherLayout';
 import TeacherDashboard from './components/teacher/TeacherDashboard';
 import TeacherAttendance from './components/teacher/TeacherAttendance';
@@ -18,6 +17,10 @@ import StudentLayout from './components/student/StudentLayout';
 import StudentDashboard from './components/student/StudentDashboard';
 import StudentAttendance from './components/student/StudentAttendance';
 import StudentSettings from './components/student/StudentSettings';
+import AdminLayout from './components/admin/AdminLayout';
+import AdminWelcome from './components/admin/AdminWelcome';
+import SpecializationManagement from "./components/admin/SpecializationManagement";
+import RoleManagement from "./components/admin/RoleManagement";
 
 function App() {
   return (
@@ -26,7 +29,12 @@ function App() {
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/welcome" element={<Welcome />} />
-        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route path="dashboard" element={<AdminWelcome />} />
+          <Route path="accounts/roles" element={<RoleManagement />} />
+          <Route path="education/specializations" element={<SpecializationManagement />} />
+          <Route index element={<AdminWelcome />} />
+        </Route>
         <Route path="/staff" element={<StaffLayout />}>
           <Route path="reports" element={<StaffReports />} />
           <Route path="add-users" element={<StaffAddUsers />} />
