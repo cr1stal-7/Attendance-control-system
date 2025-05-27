@@ -41,10 +41,10 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/staff/**").hasRole("STAFF")
-                        .requestMatchers("/teacher/**").hasRole("TEACHER")
-                        .requestMatchers("/student/**").hasRole("STUDENT")
+                        .requestMatchers("/admin/**").hasRole("Администратор")
+                        .requestMatchers("/staff/**").hasRole("Сотрудник")
+                        .requestMatchers("/teacher/**").hasRole("Преподаватель")
+                        .requestMatchers("/student/**").hasRole("Студент")
                         .requestMatchers("/login", "/resources/**").permitAll()
                         .anyRequest().authenticated()
                 )
@@ -71,14 +71,13 @@ public class SecurityConfig {
                 return User.builder()
                         .username(student.get().getEmail())
                         .password(student.get().getPassword())
-                        .roles("STUDENT")
+                        .roles("Студент")
                         .build();
             }
 
             Optional<Employee> employee = employeeRepository.findByEmail(username);
             if (employee.isPresent()) {
-                String role = employee.get().getRole().getName()
-                        .replace("ROLE_", "");
+                String role = employee.get().getRole().getName();
 
                 return User.builder()
                         .username(employee.get().getEmail())

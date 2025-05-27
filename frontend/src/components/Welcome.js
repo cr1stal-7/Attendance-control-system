@@ -15,13 +15,13 @@ const Welcome = () => {
                 // Перенаправляем по роли
                 if (response.data.role) {
                     switch(response.data.role) {
-                        case 'ROLE_ADMIN':
+                        case 'Администратор':
                             navigate('/admin/dashboard', { state: response.data });
                             break;
-                        case 'ROLE_TEACHER':
+                        case 'Преподаватель':
                             navigate('/teacher/dashboard', { state: response.data });
                             break;
-                        case 'ROLE_STAFF':
+                        case 'Сотрудник':
                             navigate('/staff/reports', { state: response.data });
                             break;
                     }

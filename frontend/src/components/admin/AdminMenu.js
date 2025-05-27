@@ -152,7 +152,7 @@ const AdminMenu = ({ activeItem }) => {
                             fontSize: '0.95rem'
                         }}
                     >
-                        Корпусы
+                        Корпуса
                     </Link>
                     <Link
                         to="structure/classrooms"
@@ -250,28 +250,28 @@ const AdminMenu = ({ activeItem }) => {
                         Учебные планы
                     </Link>
                     <Link
-                        to="education/disciplines"
+                        to="education/subjects"
                         style={{
                             display: 'block',
                             padding: '8px 35px',
-                            color: isActive('education-disciplines') ? '#3498db' : 'white',
+                            color: isActive('education-subject') ? '#3498db' : 'white',
                             textDecoration: 'none',
-                            backgroundColor: isActive('education-disciplines') ? '#2c3e50' : 'transparent',
-                            fontWeight: isActive('education-disciplines') ? 'bold' : 'normal',
+                            backgroundColor: isActive('education-subject') ? '#2c3e50' : 'transparent',
+                            fontWeight: isActive('education-subject') ? 'bold' : 'normal',
                             fontSize: '0.9rem'
                         }}
                     >
                         Дисциплины
                     </Link>
                     <Link
-                        to="education/plan-disciplines"
+                        to="education/plan-subject"
                         style={{
                             display: 'block',
                             padding: '8px 35px',
-                            color: isActive('education-plan-disciplines') ? '#3498db' : 'white',
+                            color: isActive('education-plan-subject') ? '#3498db' : 'white',
                             textDecoration: 'none',
-                            backgroundColor: isActive('education-plan-disciplines') ? '#2c3e50' : 'transparent',
-                            fontWeight: isActive('education-plan-disciplines') ? 'bold' : 'normal',
+                            backgroundColor: isActive('education-plan-subject') ? '#2c3e50' : 'transparent',
+                            fontWeight: isActive('education-plan-subject') ? 'bold' : 'normal',
                             fontSize: '0.9rem'
                         }}
                     >

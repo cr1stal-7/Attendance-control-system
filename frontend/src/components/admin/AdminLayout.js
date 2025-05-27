@@ -40,8 +40,8 @@ const AdminLayout = () => {
         if (path.includes('education/study-forms')) return 'education-study-forms';
         if (path.includes('education/groups')) return 'education-groups';
         if (path.includes('education/study-plans')) return 'education-study-plans';
-        if (path.includes('education/disciplines')) return 'education-disciplines';
-        if (path.includes('education/plan-disciplines')) return 'education-plan-disciplines';
+        if (path.includes('education/subjects')) return 'education-subject';
+        if (path.includes('education/plan-subject')) return 'education-plan-subject';
         if (path.includes('education/semesters')) return 'education-semesters';
         // Расписание и занятия
         if (path.includes('schedule/classes')) return 'schedule-classes';

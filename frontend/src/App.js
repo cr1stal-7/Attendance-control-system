@@ -21,6 +21,13 @@ import AdminLayout from './components/admin/AdminLayout';
 import AdminWelcome from './components/admin/AdminWelcome';
 import SpecializationManagement from "./components/admin/SpecializationManagement";
 import RoleManagement from "./components/admin/RoleManagement";
+import EducationFormManagement from "./components/admin/EducationFormManagement";
+import BuildingManagement from "./components/admin/BuildingManagement";
+import PositionManagement from "./components/admin/PositionManagement";
+import SemesterManagement from "./components/admin/SemesterManagement";
+import SubjectManagement from "./components/admin/SubjectManagement";
+import AttendanceStatusManagement from "./components/admin/AttendanceStatusManagement";
+import ClassTypeManagement from "./components/admin/ClassTypeManagement";
 
 function App() {
   return (
@@ -33,6 +40,13 @@ function App() {
           <Route path="dashboard" element={<AdminWelcome />} />
           <Route path="accounts/roles" element={<RoleManagement />} />
           <Route path="education/specializations" element={<SpecializationManagement />} />
+          <Route path="education/study-forms" element={<EducationFormManagement />} />
+          <Route path="education/semesters" element={<SemesterManagement />} />
+          <Route path="education/subjects" element={<SubjectManagement />} />
+          <Route path="structure/buildings" element={<BuildingManagement />} />
+          <Route path="structure/positions" element={<PositionManagement />} />
+          <Route path="attendance/statuses" element={<AttendanceStatusManagement />} />
+          <Route path="schedule/class-types" element={<ClassTypeManagement />} />
           <Route index element={<AdminWelcome />} />
         </Route>
         <Route path="/staff" element={<StaffLayout />}>

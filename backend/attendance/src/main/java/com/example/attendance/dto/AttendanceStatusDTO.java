@@ -7,7 +7,6 @@ import lombok.Data;
 @AllArgsConstructor
 public class AttendanceStatusDTO {
     private Integer idStatus;
-    private String academicYear;
-    private String type;
+    private String name;
 }
 
