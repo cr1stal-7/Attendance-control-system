@@ -39,9 +39,9 @@ const AdminLayout = () => {
         if (path.includes('education/specializations')) return 'education-specializations';
         if (path.includes('education/study-forms')) return 'education-study-forms';
         if (path.includes('education/groups')) return 'education-groups';
-        if (path.includes('education/study-plans')) return 'education-study-plans';
+        if (path.includes('education/curriculums')) return 'education-curriculums';
         if (path.includes('education/subjects')) return 'education-subject';
-        if (path.includes('education/plan-subject')) return 'education-plan-subject';
+        if (path.includes('education/curriculum-subjects')) return 'education-curriculum-subjects';
         if (path.includes('education/semesters')) return 'education-semesters';
         // Расписание и занятия
         if (path.includes('schedule/classes')) return 'schedule-classes';

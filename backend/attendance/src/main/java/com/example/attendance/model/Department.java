@@ -1,5 +1,6 @@
 package com.example.attendance.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -25,11 +26,14 @@ public class Department {
     private Department parentDepartment;
 
     @OneToMany(mappedBy = "parentDepartment")
+    @JsonIgnore
     private List<Department> childDepartments;
 
     @OneToMany(mappedBy = "department")
+    @JsonIgnore
     private List<Employee> employees;
 
     @OneToMany(mappedBy = "department")
+    @JsonIgnore
     private List<StudentGroup> studentGroups;
 }

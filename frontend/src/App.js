@@ -28,6 +28,12 @@ import SemesterManagement from "./components/admin/SemesterManagement";
 import SubjectManagement from "./components/admin/SubjectManagement";
 import AttendanceStatusManagement from "./components/admin/AttendanceStatusManagement";
 import ClassTypeManagement from "./components/admin/ClassTypeManagement";
+import ClassroomManagement from "./components/admin/ClassroomManagement";
+import ControlPointManagement from "./components/admin/ControlPointManagement";
+import DepartmentManagement from "./components/admin/DepartmentManagement";
+import CurriculumManagement from "./components/admin/CurriculumManagement";
+import CurriculumSubjectsManagement from "./components/admin/CurriculumSubjectsManagement";
+import GroupManagement from "./components/admin/GroupManagement";
 
 function App() {
   return (
@@ -41,11 +47,17 @@ function App() {
           <Route path="accounts/roles" element={<RoleManagement />} />
           <Route path="education/specializations" element={<SpecializationManagement />} />
           <Route path="education/study-forms" element={<EducationFormManagement />} />
+          <Route path="education/curriculums" element={<CurriculumManagement />} />
+          <Route path="education/curriculum-subjects" element={<CurriculumSubjectsManagement />} />
+          <Route path="education/groups" element={<GroupManagement />} />
           <Route path="education/semesters" element={<SemesterManagement />} />
           <Route path="education/subjects" element={<SubjectManagement />} />
+          <Route path="structure/departments" element={<DepartmentManagement />} />
           <Route path="structure/buildings" element={<BuildingManagement />} />
+          <Route path="structure/classrooms" element={<ClassroomManagement />} />
           <Route path="structure/positions" element={<PositionManagement />} />
           <Route path="attendance/statuses" element={<AttendanceStatusManagement />} />
+          <Route path="attendance/control-points" element={<ControlPointManagement />} />
           <Route path="schedule/class-types" element={<ClassTypeManagement />} />
           <Route index element={<AdminWelcome />} />
         </Route>

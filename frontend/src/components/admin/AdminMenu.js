@@ -236,18 +236,32 @@ const AdminMenu = ({ activeItem }) => {
 
                     <div style={{ padding: '8px 20px', fontWeight: 'bold', fontSize: '0.9rem' }}>Учебные планы и дисциплины</div>
                     <Link
-                        to="education/study-plans"
+                        to="education/curriculums"
                         style={{
                             display: 'block',
                             padding: '8px 35px',
-                            color: isActive('education-study-plans') ? '#3498db' : 'white',
+                            color: isActive('education-curriculums') ? '#3498db' : 'white',
                             textDecoration: 'none',
-                            backgroundColor: isActive('education-study-plans') ? '#2c3e50' : 'transparent',
-                            fontWeight: isActive('education-study-plans') ? 'bold' : 'normal',
+                            backgroundColor: isActive('education-curriculums') ? '#2c3e50' : 'transparent',
+                            fontWeight: isActive('education-curriculums') ? 'bold' : 'normal',
                             fontSize: '0.9rem'
                         }}
                     >
                         Учебные планы
+                    </Link>
+                    <Link
+                        to="education/curriculum-subjects"
+                        style={{
+                            display: 'block',
+                            padding: '8px 35px',
+                            color: isActive('education-curriculum-subjects') ? '#3498db' : 'white',
+                            textDecoration: 'none',
+                            backgroundColor: isActive('education-curriculum-subjects') ? '#2c3e50' : 'transparent',
+                            fontWeight: isActive('education-curriculum-subjects') ? 'bold' : 'normal',
+                            fontSize: '0.9rem'
+                        }}
+                    >
+                        Дисциплины в учебном плане
                     </Link>
                     <Link
                         to="education/subjects"
@@ -262,20 +276,6 @@ const AdminMenu = ({ activeItem }) => {
                         }}
                     >
                         Дисциплины
-                    </Link>
-                    <Link
-                        to="education/plan-subject"
-                        style={{
-                            display: 'block',
-                            padding: '8px 35px',
-                            color: isActive('education-plan-subject') ? '#3498db' : 'white',
-                            textDecoration: 'none',
-                            backgroundColor: isActive('education-plan-subject') ? '#2c3e50' : 'transparent',
-                            fontWeight: isActive('education-plan-subject') ? 'bold' : 'normal',
-                            fontSize: '0.9rem'
-                        }}
-                    >
-                        Дисциплины в учебном плане
                     </Link>
                     <Link
                         to="education/semesters"

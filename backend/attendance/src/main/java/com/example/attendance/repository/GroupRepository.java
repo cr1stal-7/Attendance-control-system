@@ -13,4 +13,12 @@ public interface GroupRepository extends JpaRepository<StudentGroup, Integer> {
 
     @Query("SELECT g FROM StudentGroup g WHERE g.curriculum.idCurriculum = :curriculumId")
     List<StudentGroup> findByCurriculumId(@Param("curriculumId") Integer curriculumId);
+
+    List<StudentGroup> findByDepartmentIdDepartment(Integer departmentId);
+    List<StudentGroup> findByCurriculumIdCurriculum(Integer curriculumId);
+
+    @Query("SELECT g FROM StudentGroup g WHERE g.department.idDepartment = :departmentId AND g.curriculum.idCurriculum = :curriculumId")
+    List<StudentGroup> findByDepartmentIdDepartmentAndCurriculumIdCurriculum(
+            @Param("departmentId") Integer departmentId,
+            @Param("curriculumId") Integer curriculumId);
 }
