@@ -26,8 +26,9 @@ public class StudentGroup {
     @JoinColumn(name = "id_department")
     private Department department;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne()
     @JoinColumn(name = "id_curriculum")
+    @JsonIgnore
     private Curriculum curriculum;
 
     @OneToMany(mappedBy = "group", fetch = FetchType.LAZY)

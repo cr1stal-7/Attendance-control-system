@@ -235,8 +235,18 @@ const AttendanceTable = ({ students }) => {
     const dates = students[0]?.attendanceByDate?.map(item => item.date) || [];
 
     return (
-        <div style={{ border: '1px solid #ddd', borderRadius: '8px', overflow: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
+        <div style={{
+            border: '1px solid #ddd',
+            borderRadius: '8px',
+            overflowX: 'auto',
+            marginBottom: '20px',
+            width: '100%'
+        }}>
+            <table style={{
+                width: '100%',
+                borderCollapse: 'collapse',
+                minWidth: '1000px'
+            }}>
                 <thead>
                 <tr style={{ backgroundColor: '#2c3e50', color: 'white' }}>
                     <th style={tableHeaderStyle}>№</th>

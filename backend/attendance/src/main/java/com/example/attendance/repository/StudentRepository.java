@@ -39,6 +39,9 @@ public interface StudentRepository extends JpaRepository<Student, Integer> {
     @Query("SELECT s FROM Student s WHERE s.group.idGroup = :groupId")
     List<Student> findByGroupId(@Param("groupId") Integer groupId);
 
+    @Query("SELECT s FROM Student s WHERE s.group.department.idDepartment = :departmentId")
+    List<Student> findByGroupDepartmentIdDepartment(@Param("departmentId") Integer departmentId);
+
     boolean existsByEmail(String email);
     boolean existsByStudentCardId(Integer studentCardId);
 }

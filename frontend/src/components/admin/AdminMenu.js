@@ -49,14 +49,14 @@ const AdminMenu = ({ activeItem }) => {
             {expandedSections.accounts && (
                 <div style={{ paddingLeft: '15px' }}>
                     <Link
-                        to="accounts/staff"
+                        to="accounts/employees"
                         style={{
                             display: 'block',
                             padding: '10px 20px',
-                            color: isActive('accounts-staff') ? '#3498db' : 'white',
+                            color: isActive('accounts-employees') ? '#3498db' : 'white',
                             textDecoration: 'none',
-                            backgroundColor: isActive('accounts-staff') ? '#2c3e50' : 'transparent',
-                            fontWeight: isActive('accounts-staff') ? 'bold' : 'normal',
+                            backgroundColor: isActive('accounts-employees') ? '#2c3e50' : 'transparent',
+                            fontWeight: isActive('accounts-employees') ? 'bold' : 'normal',
                             fontSize: '0.95rem'
                         }}
                     >

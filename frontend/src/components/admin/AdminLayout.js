@@ -27,7 +27,7 @@ const AdminLayout = () => {
     const getActiveItem = () => {
         const path = location.pathname;
         // Учетные записи
-        if (path.includes('accounts/staff')) return 'accounts-staff';
+        if (path.includes('accounts/employees')) return 'accounts-employees';
         if (path.includes('accounts/students')) return 'accounts-students';
         if (path.includes('accounts/roles')) return 'accounts-roles';
         // Организационная структура

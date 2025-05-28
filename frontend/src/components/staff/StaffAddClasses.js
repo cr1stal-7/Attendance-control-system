@@ -473,8 +473,18 @@ const StaffAddClasses = () => {
             {loading ? (
                 <p>Загрузка данных...</p>
             ) : classes.length > 0 ? (
-                <div style={{ border: '1px solid #ddd', borderRadius: '8px', overflow: 'hidden' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <div style={{
+                    border: '1px solid #ddd',
+                    borderRadius: '8px',
+                    overflowX: 'auto',
+                    marginBottom: '20px',
+                    width: '100%'
+                }}>
+                    <table style={{
+                        width: '100%',
+                        borderCollapse: 'collapse',
+                        minWidth: '1000px'
+                    }}>
                         <thead>
                         <tr style={{ backgroundColor: '#2c3e50', color: 'white' }}>
                             <th style={{ padding: '12px', textAlign: 'left' }}>№</th>

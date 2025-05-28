@@ -34,6 +34,8 @@ import DepartmentManagement from "./components/admin/DepartmentManagement";
 import CurriculumManagement from "./components/admin/CurriculumManagement";
 import CurriculumSubjectsManagement from "./components/admin/CurriculumSubjectsManagement";
 import GroupManagement from "./components/admin/GroupManagement";
+import StudentManagement from "./components/admin/StudentManagement";
+import EmployeeManagement from "./components/admin/EmployeeManagement";
 
 function App() {
   return (
@@ -44,6 +46,8 @@ function App() {
         <Route path="/welcome" element={<Welcome />} />
         <Route path="/admin" element={<AdminLayout />}>
           <Route path="dashboard" element={<AdminWelcome />} />
+          <Route path="accounts/students" element={<StudentManagement />} />
+          <Route path="accounts/employees" element={<EmployeeManagement />} />
           <Route path="accounts/roles" element={<RoleManagement />} />
           <Route path="education/specializations" element={<SpecializationManagement />} />
           <Route path="education/study-forms" element={<EducationFormManagement />} />

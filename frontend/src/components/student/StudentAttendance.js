@@ -257,11 +257,14 @@ const StudentAttendance = () => {
                 <div style={{
                     border: '1px solid #ddd',
                     borderRadius: '8px',
-                    overflow: 'hidden'
+                    overflowX: 'auto',
+                    marginBottom: '20px',
+                    width: '100%'
                 }}>
                     <table style={{
                         width: '100%',
-                        borderCollapse: 'collapse'
+                        borderCollapse: 'collapse',
+                        minWidth: '1000px'
                     }}>
                         <thead>
                         <tr style={{
@@ -309,12 +312,14 @@ const StudentAttendance = () => {
                         <div style={{
                             border: '1px solid #ddd',
                             borderRadius: '8px',
-                            overflow: 'auto'
+                            overflowX: 'auto',
+                            marginBottom: '20px',
+                            width: '100%'
                         }}>
                             <table style={{
                                 width: '100%',
                                 borderCollapse: 'collapse',
-                                minWidth: '600px'
+                                minWidth: '1000px'
                             }}>
                                 <thead>
                                 <tr style={{
