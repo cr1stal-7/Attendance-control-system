@@ -21,7 +21,7 @@ const AdminHeader = ({ adminName }) => {
             alignItems: 'center',
             boxShadow: '0 2px 5px rgba(0,0,0,0.1)'
         }}>
-            <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{adminName}{'(Администратор)'}</div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{'Администратор'}</div>
             <button
                 onClick={handleLogout}
                 style={{

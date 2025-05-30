@@ -15,8 +15,8 @@ public class Classroom {
     @Column(name = "id_classroom")
     private Integer idClassroom;
 
-    @Column(name = "number", nullable = false, length = 10)
-    private String number;
+    @Column(name = "number", nullable = false)
+    private Integer number;
 
     @Column(name = "floor", nullable = false)
     private Integer floor;

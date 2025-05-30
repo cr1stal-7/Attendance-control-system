@@ -25,9 +25,7 @@ const AdminMenu = ({ activeItem }) => {
             backgroundColor: '#34495e',
             color: 'white',
             minHeight: '100vh',
-            padding: '10px 0',
-            position: 'fixed',
-            overflowY: 'auto'
+            padding: '10px 0'
         }}>
             {/* Учетные записи */}
             <div style={{ borderTop: '1px solid #2c3e50', margin: '10px 0' }}></div>

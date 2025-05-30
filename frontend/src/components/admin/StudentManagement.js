@@ -56,7 +56,6 @@ const StudentManagement = () => {
                 withCredentials: true
             });
 
-            // Сортировка студентов по алфавиту (фамилия, имя)
             const sortedStudents = [...response.data].sort((a, b) => {
                 const nameA = `${a.surname} ${a.name}`.toLowerCase();
                 const nameB = `${b.surname} ${b.name}`.toLowerCase();
@@ -76,7 +75,6 @@ const StudentManagement = () => {
                 'http://localhost:8080/api/admin/accounts/students/departments',
                 { withCredentials: true }
             );
-            // Фильтруем только факультеты (где parentDepartment = null)
             const faculties = response.data.filter(dept => dept.parentDepartment === null);
             setDepartments(faculties);
         } catch (err) {
@@ -168,7 +166,6 @@ const StudentManagement = () => {
         if (!studentForm.studentCardId) errors.studentCardId = "Номер студенческого билета обязателен";
         if (!studentForm.idGroup) errors.group = "Группа обязательна";
 
-        // Проверка пароля только при создании нового студента
         if (!isEditMode && !studentForm.password) {
             errors.password = "Пароль обязателен";
         }
@@ -182,7 +179,6 @@ const StudentManagement = () => {
         try {
             const config = { withCredentials: true, headers: { 'Content-Type': 'application/json' } };
 
-            // При редактировании, если пароль не указан - не отправляем его
             const formData = isEditMode
                 ? studentForm.password
                     ? studentForm
@@ -212,7 +208,7 @@ const StudentManagement = () => {
     };
 
     return (
-        <div style={{ maxWidth: '1050px', margin: '0 auto', padding: '20px' }}>
+        <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                 <h2 style={{ color: '#2c3e50', fontSize: '1.4rem', margin: 0 }}>Список студентов</h2>
                 <button
@@ -329,6 +325,7 @@ const StudentManagement = () => {
                                         style={{
                                             padding: '0.3rem 0.6rem',
                                             marginRight: '5px',
+                                            marginBlock: '5px',
                                             backgroundColor: '#f39c12',
                                             color: 'white',
                                             border: 'none',

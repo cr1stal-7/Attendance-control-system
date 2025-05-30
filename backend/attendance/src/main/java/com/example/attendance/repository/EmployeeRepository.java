@@ -99,9 +99,7 @@ public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
             "WHERE ac.idClass = :classId")
     Optional<AcademicClass> findClassById(@Param("classId") Integer classId);
 
-    boolean existsByEmail(String email);
-
-    List<Employee> findByDepartment(Department department);
-
     List<Employee> findByDepartment_IdDepartment(Integer departmentId);
+
+    List<Employee> findByDepartmentInAndRole_NameNot(List<Department> departments, String admin);
 }

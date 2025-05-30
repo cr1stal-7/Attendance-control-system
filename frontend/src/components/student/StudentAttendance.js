@@ -264,7 +264,7 @@ const StudentAttendance = () => {
                     <table style={{
                         width: '100%',
                         borderCollapse: 'collapse',
-                        minWidth: '1000px'
+                        minWidth: '950px'
                     }}>
                         <thead>
                         <tr style={{
@@ -319,7 +319,7 @@ const StudentAttendance = () => {
                             <table style={{
                                 width: '100%',
                                 borderCollapse: 'collapse',
-                                minWidth: '1000px'
+                                minWidth: '950px'
                             }}>
                                 <thead>
                                 <tr style={{

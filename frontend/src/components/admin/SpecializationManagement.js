@@ -24,7 +24,10 @@ const SpecializationManagement = () => {
             const response = await axios.get('http://localhost:8080/api/admin/education/specializations', {
                 withCredentials: true
             });
-            setSpecializations(response.data);
+            const sortedSpecializations = response.data.sort((a, b) => {
+                return a.code.localeCompare(b.code);
+            });
+            setSpecializations(sortedSpecializations);
         } catch (err) {
             console.error('Ошибка загрузки специализаций:', err);
             setError('Не удалось загрузить список специализаций');
@@ -116,7 +119,7 @@ const SpecializationManagement = () => {
     };
 
     return (
-        <div style={{ maxWidth: '1050px', margin: '0 auto', padding: '20px' }}>
+        <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2 style={{ color: '#2c3e50', fontSize: '1.4rem', margin: 0 }}>Список направлений</h2>
                 <button

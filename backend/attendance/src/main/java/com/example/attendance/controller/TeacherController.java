@@ -13,10 +13,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -26,15 +23,18 @@ public class TeacherController {
     private final EmployeeRepository employeeRepository;
     private final StudentRepository studentRepository;
     private final AttendanceRepository attendanceRepository;
+    private final StudentGroupRepository studentGroupRepository;
 
     public TeacherController(TeacherService teacherService,
                              EmployeeRepository employeeRepository,
                              StudentRepository studentRepository,
-                             AttendanceRepository attendanceRepository) {
+                             AttendanceRepository attendanceRepository,
+                             StudentGroupRepository studentGroupRepository) {
         this.teacherService = teacherService;
         this.employeeRepository = employeeRepository;
         this.studentRepository = studentRepository;
         this.attendanceRepository = attendanceRepository;
+        this.studentGroupRepository = studentGroupRepository;
     }
 
     @GetMapping("/semesters")
@@ -210,15 +210,19 @@ public class TeacherController {
                 classes = teacherService.getClassesByTeacherSubject(teacherId, subjectId, semesterId);
             }
 
-            List<ClassDTO> result = classes.stream()
-                    .map(c -> new ClassDTO(
+            List<ClassDTO> result = new ArrayList<>();
+            for (AcademicClass c : classes) {
+                for (StudentGroup group : c.getGroups()) {
+                    result.add(new ClassDTO(
                             c.getIdClass(),
                             c.getDatetime(),
                             c.getClassType() != null ? c.getClassType().getName() : "Не указано",
                             c.getCurriculumSubject().getSubject().getName(),
-                            c.getGroups().stream().findFirst().map(StudentGroup::getName).orElse("")
-                    ))
-                    .collect(Collectors.toList());
+                            group.getName(),
+                            group.getIdGroup()
+                    ));
+                }
+            }
 
             return ResponseEntity.ok(result);
         } catch (Exception e) {
@@ -229,7 +233,8 @@ public class TeacherController {
     @GetMapping("/attendance/{classId}")
     public ResponseEntity<Map<String, Object>> getAttendanceData(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Integer classId
+            @PathVariable Integer classId,
+            @RequestParam Integer groupId
     ) {
         try {
             Integer teacherId = getTeacherIdFromUserDetails(userDetails);
@@ -242,9 +247,9 @@ public class TeacherController {
             }
 
             AcademicClass classEntity = teacherService.getClassById(classId);
-            StudentGroup group = classEntity.getGroups().stream().findFirst().orElseThrow();
+            StudentGroup group = studentGroupRepository.findById(groupId).orElseThrow();
 
-            List<Student> students = studentRepository.findByGroupId(group.getIdGroup());
+            List<Student> students = studentRepository.findByGroupId(groupId);
             List<Attendance> existingAttendances = attendanceRepository.findByClassEntity(classEntity);
 
             List<Integer> studentIds = students.stream()

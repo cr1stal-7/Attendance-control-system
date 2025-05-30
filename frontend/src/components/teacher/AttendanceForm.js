@@ -1,16 +1,21 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import {useParams, useNavigate, useSearchParams} from 'react-router-dom';
 import axios from 'axios';
 
 const AttendanceForm = () => {
     const { classId } = useParams();
+    const [searchParams] = useSearchParams();
+    const groupId = searchParams.get('groupId');
     const navigate = useNavigate();
     const [students, setStudents] = useState([]);
     const [classInfo, setClassInfo] = useState(null);
     const [isSaving, setIsSaving] = useState(false);
 
     useEffect(() => {
-        axios.get(`http://localhost:8080/api/teacher/attendance/${classId}`, { withCredentials: true })
+        axios.get(`http://localhost:8080/api/teacher/attendance/${classId}`, {
+            params: { groupId },
+            withCredentials: true
+        })
             .then(response => {
                 setClassInfo(response.data.classInfo);
                 const sortedStudents = [...response.data.students]
@@ -22,7 +27,7 @@ const AttendanceForm = () => {
                 setStudents(sortedStudents);
             })
             .catch(error => console.error('Error fetching attendance data:', error));
-    }, [classId]);
+    }, [classId, groupId]);
 
     const handleStatusChange = (studentId, newStatus) => {
         setStudents(prevStudents =>
@@ -78,7 +83,7 @@ const AttendanceForm = () => {
     };
 
     return (
-        <div style={{ maxWidth: '1200px', margin: '0 auto'}}>
+        <div style={{ maxWidth: '950px', margin: '0 auto'}}>
             <h1 style={{ color: '#2c3e50', marginBottom: '10px', fontSize: '1.8rem' }}>
                 Учет посещаемости
             </h1>
@@ -105,7 +110,7 @@ const AttendanceForm = () => {
                 <table style={{
                     width: '100%',
                     borderCollapse: 'collapse',
-                    minWidth: '1000px'
+                    minWidth: '950px'
                 }}>
                     <thead>
                     <tr style={{ backgroundColor: '#2c3e50', color: 'white' }}>

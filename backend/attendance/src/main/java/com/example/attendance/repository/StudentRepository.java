@@ -1,5 +1,6 @@
 package com.example.attendance.repository;
 
+import com.example.attendance.model.Department;
 import com.example.attendance.model.Semester;
 import com.example.attendance.model.Student;
 import com.example.attendance.model.Subject;
@@ -41,6 +42,9 @@ public interface StudentRepository extends JpaRepository<Student, Integer> {
 
     @Query("SELECT s FROM Student s WHERE s.group.department.idDepartment = :departmentId")
     List<Student> findByGroupDepartmentIdDepartment(@Param("departmentId") Integer departmentId);
+
+    @Query("SELECT s FROM Student s WHERE s.group.department = :department")
+    List<Student> findByGroupDepartment(@Param("department") Department department);
 
     boolean existsByEmail(String email);
     boolean existsByStudentCardId(Integer studentCardId);

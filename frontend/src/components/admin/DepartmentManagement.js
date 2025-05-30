@@ -160,7 +160,7 @@ const DepartmentManagement = () => {
     };
 
     return (
-        <div style={{ maxWidth: '1050px', margin: '0 auto', padding: '20px' }}>
+        <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                 <h2 style={{ color: '#2c3e50', fontSize: '1.4rem', margin: 0 }}>Список подразделений</h2>
                 <button
@@ -268,6 +268,7 @@ const DepartmentManagement = () => {
                                         style={{
                                             padding: '0.3rem 0.6rem',
                                             marginRight: '5px',
+                                            marginBlock: '5px',
                                             backgroundColor: '#f39c12',
                                             color: 'white',
                                             border: 'none',

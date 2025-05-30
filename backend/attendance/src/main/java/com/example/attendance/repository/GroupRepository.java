@@ -10,10 +10,6 @@ import java.util.List;
 
 public interface GroupRepository extends JpaRepository<StudentGroup, Integer> {
     List<StudentGroup> findByDepartment(Department department);
-
-    @Query("SELECT g FROM StudentGroup g WHERE g.curriculum.idCurriculum = :curriculumId")
-    List<StudentGroup> findByCurriculumId(@Param("curriculumId") Integer curriculumId);
-
     List<StudentGroup> findByDepartmentIdDepartment(Integer departmentId);
     List<StudentGroup> findByCurriculumIdCurriculum(Integer curriculumId);
 

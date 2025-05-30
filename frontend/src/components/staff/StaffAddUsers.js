@@ -8,39 +8,30 @@ const StaffAddUsers = () => {
     const [loading, setLoading] = useState(false);
     const [facultyName, setFacultyName] = useState('');
     const [error, setError] = useState(null);
-    const [departments, setDepartments] = useState([]);
-    const [groups, setGroups] = useState([]);
-    const [positions, setPositions] = useState([]);
 
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchFacultyInfo = async () => {
             setLoading(true);
             setError(null);
             try {
-                const [facultyRes, groupsRes, deptsRes, positionsRes] = await Promise.all([
-                    axios.get('http://localhost:8080/api/staff/faculty/info', { withCredentials: true }),
-                    axios.get('http://localhost:8080/api/staff/faculty/groups', { withCredentials: true }),
-                    axios.get('http://localhost:8080/api/staff/faculty/departments', { withCredentials: true }),
-                    axios.get('http://localhost:8080/api/staff/teachers/positions', { withCredentials: true })
-                ]);
-
-                setFacultyName(facultyRes.data.name);
-                setGroups(groupsRes.data);
-                setDepartments(deptsRes.data);
-                setPositions(positionsRes.data);
+                const response = await axios.get(
+                    'http://localhost:8080/api/staff/faculty/info',
+                    { withCredentials: true }
+                );
+                setFacultyName(response.data.name);
             } catch (err) {
-                console.error('Ошибка загрузки данных:', err);
-                setError('Не удалось загрузить данные. Пожалуйста, попробуйте позже.');
+                console.error('Ошибка загрузки данных факультета:', err);
+                setError('Не удалось загрузить данные факультета. Пожалуйста, попробуйте позже.');
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchData();
+        fetchFacultyInfo();
     }, []);
 
     return (
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '950px', margin: '0 auto' }}>
             <h1 style={{
                 color: '#2c3e50',
                 marginBottom: '10px',
@@ -101,17 +92,10 @@ const StaffAddUsers = () => {
             ) : (
                 <>
                     {userType === 'student' && (
-                        <StaffStudentsManagement
-                            groups={groups}
-                            facultyName={facultyName}
-                        />
+                        <StaffStudentsManagement facultyName={facultyName} />
                     )}
                     {userType === 'teacher' && (
-                        <StaffTeachersManagement
-                            departments={departments}
-                            positions={positions}
-                            facultyName={facultyName}
-                        />
+                        <StaffTeachersManagement facultyName={facultyName} />
                     )}
                 </>
             )}

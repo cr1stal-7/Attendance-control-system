@@ -1,49 +1,76 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Modal, Button } from 'react-bootstrap';
 
-const StaffStudentsManagement = ({ groups, facultyName }) => {
-    const [selectedGroup, setSelectedGroup] = useState('');
+const StaffStudentsManagement = ({ facultyName }) => {
     const [students, setStudents] = useState([]);
-    const [showStudentModal, setShowStudentModal] = useState(false);
+    const [groups, setGroups] = useState([]);
+    const [filteredStudents, setFilteredStudents] = useState([]);
+    const [selectedGroupFilter, setSelectedGroupFilter] = useState('');
+    const [showModal, setShowModal] = useState(false);
     const [currentStudent, setCurrentStudent] = useState(null);
     const [isEditMode, setIsEditMode] = useState(false);
     const [processing, setProcessing] = useState(false);
     const [validationErrors, setValidationErrors] = useState({});
     const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false);
 
     const [studentForm, setStudentForm] = useState({
         surname: '',
         name: '',
         secondName: '',
         birthDate: '',
-        password: '',
         email: '',
-        studentCardId: ''
+        studentCardId: '',
+        idGroup: '',
+        password: ''
     });
 
     useEffect(() => {
-        if (selectedGroup) {
-            fetchStudents();
+        const fetchInitialData = async () => {
+            setLoading(true);
+            try {
+                const [groupsRes, studentsRes] = await Promise.all([
+                    axios.get('http://localhost:8080/api/staff/students/groups', { withCredentials: true }),
+                    axios.get('http://localhost:8080/api/staff/students', { withCredentials: true })
+                ]);
+
+                setGroups(groupsRes.data);
+                const sortedStudents = [...studentsRes.data].sort((a, b) => {
+                    const nameA = `${a.surname} ${a.name}`.toLowerCase();
+                    const nameB = `${b.surname} ${b.name}`.toLowerCase();
+                    return nameA.localeCompare(nameB);
+                });
+                setStudents(sortedStudents);
+                setFilteredStudents(sortedStudents);
+
+                if (groupsRes.data.length > 0) {
+                    setStudentForm(prev => ({
+                        ...prev,
+                        idGroup: groupsRes.data[0].idGroup
+                    }));
+                }
+            } catch (err) {
+                console.error('Ошибка загрузки данных:', err);
+                setError('Не удалось загрузить данные. Пожалуйста, попробуйте позже.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchInitialData();
+    }, []);
+
+    useEffect(() => {
+        if (selectedGroupFilter) {
+            setFilteredStudents(students.filter(student =>
+                student.idGroup.toString() === selectedGroupFilter
+            ));
         } else {
-            setStudents([]);
+            setFilteredStudents(students);
         }
-    }, [selectedGroup]);
+    }, [selectedGroupFilter, students]);
 
-    const fetchStudents = async () => {
-        try {
-            const response = await axios.get(
-                `http://localhost:8080/api/staff/students?groupId=${selectedGroup}`,
-                { withCredentials: true }
-            );
-            setStudents(response.data);
-        } catch (err) {
-            console.error('Ошибка загрузки студентов:', err);
-            setError('Не удалось загрузить список студентов');
-        }
-    };
-
-    const handleStudentFormChange = (e) => {
+    const handleFormChange = (e) => {
         setStudentForm({
             ...studentForm,
             [e.target.name]: e.target.value
@@ -57,12 +84,13 @@ const StaffStudentsManagement = ({ groups, facultyName }) => {
             name: '',
             secondName: '',
             birthDate: '',
-            password: '',
             email: '',
-            studentCardId: ''
+            studentCardId: '',
+            idGroup: groups.length > 0 ? groups[0].idGroup : '',
+            password: ''
         });
         setIsEditMode(false);
-        setShowStudentModal(true);
+        setShowModal(true);
     };
 
     const handleEditStudent = (student) => {
@@ -71,13 +99,14 @@ const StaffStudentsManagement = ({ groups, facultyName }) => {
             surname: student.surname,
             name: student.name,
             secondName: student.secondName || '',
-            birthDate: formatDateForInput(student.birthDate) || '',
-            password: '',
-            email: student.email || '',
-            studentCardId: student.studentCardId || ''
+            birthDate: student.birthDate,
+            email: student.email,
+            studentCardId: student.studentCardId,
+            idGroup: student.idGroup,
+            password: ''
         });
         setIsEditMode(true);
-        setShowStudentModal(true);
+        setShowModal(true);
     };
 
     const handleDeleteStudent = async (id) => {
@@ -86,14 +115,20 @@ const StaffStudentsManagement = ({ groups, facultyName }) => {
                 setProcessing(true);
                 await axios.delete(
                     `http://localhost:8080/api/staff/students/${id}`,
-                    {
-                        withCredentials: true,
-                        headers: {
-                            'Content-Type': 'application/json'
-                        }
-                    }
+                    { withCredentials: true }
                 );
-                await fetchStudents();
+
+                const response = await axios.get(
+                    'http://localhost:8080/api/staff/students',
+                    { withCredentials: true }
+                );
+                const sortedStudents = [...response.data].sort((a, b) => {
+                    const nameA = `${a.surname} ${a.name}`.toLowerCase();
+                    const nameB = `${b.surname} ${b.name}`.toLowerCase();
+                    return nameA.localeCompare(nameB);
+                });
+                setStudents(sortedStudents);
+                setFilteredStudents(sortedStudents);
             } catch (err) {
                 console.error('Ошибка удаления студента:', err);
                 setError(`Не удалось удалить студента: ${err.response?.data?.message || err.message}`);
@@ -103,7 +138,7 @@ const StaffStudentsManagement = ({ groups, facultyName }) => {
         }
     };
 
-    const handleSubmitStudent = async () => {
+    const handleSubmit = async () => {
         setProcessing(true);
         setError(null);
         setValidationErrors({});
@@ -111,10 +146,14 @@ const StaffStudentsManagement = ({ groups, facultyName }) => {
         const errors = {};
         if (!studentForm.surname) errors.surname = "Фамилия обязательна";
         if (!studentForm.name) errors.name = "Имя обязательно";
-        if (!studentForm.email) errors.email = "Email обязателен";
-        if (!studentForm.studentCardId) errors.studentCardId = "Номер студ. билета обязателен";
         if (!studentForm.birthDate) errors.birthDate = "Дата рождения обязательна";
-        if (!isEditMode && !studentForm.password) errors.password = "Пароль обязателен";
+        if (!studentForm.email) errors.email = "Email обязателен";
+        if (!studentForm.studentCardId) errors.studentCardId = "Номер студенческого билета обязателен";
+        if (!studentForm.idGroup) errors.group = "Группа обязательна";
+
+        if (!isEditMode && !studentForm.password) {
+            errors.password = "Пароль обязателен";
+        }
 
         if (Object.keys(errors).length > 0) {
             setValidationErrors(errors);
@@ -124,186 +163,179 @@ const StaffStudentsManagement = ({ groups, facultyName }) => {
 
         try {
             const config = { withCredentials: true, headers: { 'Content-Type': 'application/json' } };
-            const formData = { ...studentForm, groupId: selectedGroup };
+
+            const formData = isEditMode
+                ? studentForm.password
+                    ? studentForm
+                    : (({ password, ...rest }) => rest)(studentForm)
+                : studentForm;
 
             const response = isEditMode
-                ? await axios.put(`http://localhost:8080/api/staff/students/${currentStudent.id}`, formData, config)
-                : await axios.post('http://localhost:8080/api/staff/students', formData, config);
+                ? await axios.put(
+                    `http://localhost:8080/api/staff/students/${currentStudent.idStudent}`,
+                    formData,
+                    config
+                )
+                : await axios.post(
+                    'http://localhost:8080/api/staff/students',
+                    formData,
+                    config
+                );
 
-            if (response.status === 409) {
-                setError('Студент с таким email или номером карты уже существует');
-                return;
-            }
+            setShowModal(false);
 
-            setShowStudentModal(false);
-            await fetchStudents();
+            const studentsRes = await axios.get(
+                'http://localhost:8080/api/staff/students',
+                { withCredentials: true }
+            );
+            const sortedStudents = [...studentsRes.data].sort((a, b) => {
+                const nameA = `${a.surname} ${a.name}`.toLowerCase();
+                const nameB = `${b.surname} ${b.name}`.toLowerCase();
+                return nameA.localeCompare(nameB);
+            });
+            setStudents(sortedStudents);
+            setFilteredStudents(sortedStudents);
         } catch (err) {
             console.error('Ошибка сохранения студента:', err);
-            setError(`Не удалось сохранить данные студента: ${err.response?.data?.message || err.message}`);
+            setError(`Не удалось сохранить данные: ${err.response?.data?.message || err.message}`);
         } finally {
             setProcessing(false);
         }
     };
 
-    const getSortedStudents = () => {
-        return [...students].sort((a, b) => {
-            const surnameCompare = a.surname.localeCompare(b.surname);
-            if (surnameCompare !== 0) return surnameCompare;
-            return a.name.localeCompare(b.name);
-        });
-    };
-
-    const formatDate = (dateString) => {
-        if (!dateString) return '-';
-        try {
-            const date = new Date(dateString);
-            const day = date.getDate().toString().padStart(2, '0');
-            const month = (date.getMonth() + 1).toString().padStart(2, '0');
-            const year = date.getFullYear();
-            return `${day}.${month}.${year}`;
-        } catch (e) {
-            return dateString;
-        }
-    };
-
-    const formatDateForInput = (dateString) => {
-        if (!dateString) return '';
-        try {
-            const date = new Date(dateString);
-            const year = date.getFullYear();
-            const month = (date.getMonth() + 1).toString().padStart(2, '0');
-            const day = date.getDate().toString().padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        } catch (e) {
-            return '';
-        }
-    };
+    if (loading) {
+        return <div style={{ maxWidth: '950px', margin: '0 auto' }}>Загрузка данных...</div>;
+    }
 
     return (
-        <div>
-            <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '1.1rem' }}>
-                    Группа:
-                </label>
-                <select
-                    value={selectedGroup}
-                    onChange={(e) => setSelectedGroup(e.target.value)}
+        <div style={{ maxWidth: '950px', margin: '0 auto'}}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <h2 style={{ color: '#2c3e50', fontSize: '1.4rem', margin: 0 }}>Список студентов</h2>
+                <button
+                    onClick={handleAddStudent}
                     style={{
-                        width: '100%',
-                        maxWidth: '200px',
-                        padding: '0.5rem',
-                        borderRadius: '4px',
-                        border: '1px solid #ddd',
-                        fontSize: '1rem'
+                        padding: '0.5rem 1rem',
+                        backgroundColor: '#3498db',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontSize: '1.1rem',
+                        height: 'fit-content',
+                        transition: 'background-color 0.3s',
+                        ':hover': {
+                            backgroundColor: '#2980b9'
+                        }
                     }}
-                    disabled={groups.length === 0}
                 >
-                    <option value="">{groups.length > 0 ? "Выберите группу" : "Нет доступных групп"}</option>
-                    {groups.map(group => (
-                        <option key={group.id} value={group.id}>
-                            {group.name}
-                        </option>
-                    ))}
-                </select>
+                    Добавить студента
+                </button>
             </div>
 
-            {selectedGroup && (
-                <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                        <h3 style={{ color: '#2c3e50' }}>Студенты группы</h3>
-                        <button
-                            onClick={handleAddStudent}
-                            style={{
-                                padding: '0.5rem 1rem',
-                                backgroundColor: '#3498db',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
-                                fontSize: '1.1rem',
-                                height: 'fit-content'
-                            }}
-                        >
-                            Добавить студента
-                        </button>
-                    </div>
-
-                    {students.length > 0 ? (
-                        <div style={{
-                            border: '1px solid #ddd',
-                            borderRadius: '8px',
-                            overflowX: 'auto',
-                            marginBottom: '20px',
-                            width: '100%'
-                        }}>
-                            <table style={{
-                                width: '100%',
-                                borderCollapse: 'collapse',
-                                minWidth: '1000px'
-                            }}>
-                                <thead>
-                                <tr style={{ backgroundColor: '#2c3e50', color: 'white' }}>
-                                    <th style={{ padding: '12px', textAlign: 'left' }}>№</th>
-                                    <th style={{ padding: '12px', textAlign: 'left' }}>Фамилия</th>
-                                    <th style={{ padding: '12px', textAlign: 'left' }}>Имя</th>
-                                    <th style={{ padding: '12px', textAlign: 'left' }}>Отчество</th>
-                                    <th style={{ padding: '12px', textAlign: 'left' }}>Email</th>
-                                    <th style={{ padding: '12px', textAlign: 'left' }}>Номер карты</th>
-                                    <th style={{ padding: '12px', textAlign: 'left' }}>Дата рождения</th>
-                                    <th style={{ padding: '12px', textAlign: 'left' }}>Действия</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {getSortedStudents().map((student, index) => (
-                                    <tr key={student.id} style={{ borderBottom: '1px solid #ddd' }}>
-                                        <td style={{ padding: '12px' }}>{index + 1}</td>
-                                        <td style={{ padding: '12px' }}>{student.surname}</td>
-                                        <td style={{ padding: '12px' }}>{student.name}</td>
-                                        <td style={{ padding: '12px' }}>{student.secondName || '-'}</td>
-                                        <td style={{ padding: '12px' }}>{student.email}</td>
-                                        <td style={{ padding: '12px' }}>{student.studentCardId}</td>
-                                        <td style={{ padding: '12px' }}>{formatDate(student.birthDate)}</td>
-                                        <td style={{ padding: '12px' }}>
-                                            <button
-                                                onClick={() => handleEditStudent(student)}
-                                                style={{
-                                                    padding: '0.3rem 0.6rem',
-                                                    marginBottom: '5px',
-                                                    backgroundColor: '#f39c12',
-                                                    color: 'white',
-                                                    border: 'none',
-                                                    borderRadius: '4px',
-                                                    cursor: 'pointer'
-                                                }}
-                                            >
-                                                Редактировать
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeleteStudent(student.id)}
-                                                style={{
-                                                    padding: '0.3rem 0.6rem',
-                                                    backgroundColor: '#e74c3c',
-                                                    color: 'white',
-                                                    border: 'none',
-                                                    borderRadius: '4px',
-                                                    cursor: 'pointer'
-                                                }}
-                                            >
-                                                Удалить
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    ) : (
-                        <p>В этой группе пока нет студентов</p>
-                    )}
+            <div style={{ marginBottom: '15px', display: 'flex', gap: '20px' }}>
+                <div style={{ flex: 1 }}>
+                    <label style={{ marginRight: '10px', fontSize: '1.1rem' }}>Фильтр по группе:</label>
+                    <select
+                        value={selectedGroupFilter}
+                        onChange={(e) => setSelectedGroupFilter(e.target.value)}
+                        style={{
+                            padding: '0.5rem',
+                            borderRadius: '4px',
+                            border: '1px solid #ced4da',
+                            fontSize: '1rem',
+                            width: '100%',
+                            maxWidth: '200px'
+                        }}
+                    >
+                        <option value="">Все группы</option>
+                        {groups.map(group => (
+                            <option key={group.idGroup} value={group.idGroup}>
+                                {group.name}
+                            </option>
+                        ))}
+                    </select>
                 </div>
+            </div>
+
+            {filteredStudents.length > 0 ? (
+                <div style={{
+                    border: '1px solid #ddd',
+                    borderRadius: '8px',
+                    overflowX: 'auto',
+                    marginBottom: '20px',
+                    width: '100%'
+                }}>
+                    <table style={{
+                        width: '100%',
+                        borderCollapse: 'collapse',
+                        minWidth: '950px'
+                    }}>
+                        <thead>
+                        <tr style={{ backgroundColor: '#2c3e50', color: 'white' }}>
+                            <th style={{ padding: '12px', textAlign: 'left'}}>№</th>
+                            <th style={{ padding: '12px', textAlign: 'left'}}>ФИО</th>
+                            <th style={{ padding: '12px', textAlign: 'left'}}>Дата рождения</th>
+                            <th style={{ padding: '12px', textAlign: 'left'}}>Email</th>
+                            <th style={{ padding: '12px', textAlign: 'left'}}>Студ. билет</th>
+                            <th style={{ padding: '12px', textAlign: 'left'}}>Группа</th>
+                            <th style={{ padding: '12px', textAlign: 'left'}}>Действия</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {filteredStudents.map((student, index) => (
+                            <tr key={student.idStudent} style={{ borderBottom: '1px solid #ddd' }}>
+                                <td style={{ padding: '12px'}}>{index + 1}</td>
+                                <td style={{ padding: '12px'}}>
+                                    {`${student.surname} ${student.name} ${student.secondName || ''}`}
+                                </td>
+                                <td style={{ padding: '12px'}}>
+                                    {new Date(student.birthDate).toLocaleDateString()}
+                                </td>
+                                <td style={{ padding: '12px'}}>{student.email}</td>
+                                <td style={{ padding: '12px'}}>{student.studentCardId}</td>
+                                <td style={{ padding: '12px'}}>{student.groupName}</td>
+                                <td style={{ padding: '12px' }}>
+                                    <button
+                                        onClick={() => handleEditStudent(student)}
+                                        style={{
+                                            padding: '0.3rem 0.6rem',
+                                            marginRight: '5px',
+                                            marginBlock: '5px',
+                                            backgroundColor: '#f39c12',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '4px',
+                                            cursor: 'pointer',
+                                            transition: 'background-color 0.3s'
+                                        }}
+                                    >
+                                        Редактировать
+                                    </button>
+                                    <button
+                                        onClick={() => handleDeleteStudent(student.idStudent)}
+                                        style={{
+                                            padding: '0.3rem 0.6rem',
+                                            backgroundColor: '#e74c3c',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '4px',
+                                            cursor: 'pointer',
+                                            transition: 'background-color 0.3s'
+                                        }}
+                                    >
+                                        Удалить
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                        </tbody>
+                    </table>
+                </div>
+            ) : (
+                <p style={{ fontSize: '1rem', color: '#7f8c8d' }}>Список студентов пуст</p>
             )}
 
-            {showStudentModal && (
+            {showModal && (
                 <div style={{
                     position: 'fixed',
                     top: 0,
@@ -327,34 +359,35 @@ const StaffStudentsManagement = ({ groups, facultyName }) => {
                         <h2 style={{
                             marginTop: 0,
                             marginBottom: '20px',
-                            color: '#2c3e50'
+                            color: '#2c3e50',
+                            fontSize: '1.3rem'
                         }}>
                             {isEditMode ? 'Редактирование студента' : 'Добавление нового студента'}
                         </h2>
 
                         <form>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
-                                <div>
+                            <div style={{ display: 'flex', gap: '15px', marginBottom: '15px' }}>
+                                <div style={{ flex: 1 }}>
                                     <label style={{
                                         display: 'block',
                                         marginBottom: '8px',
                                         fontWeight: '500',
-                                        color: '#34495e'
+                                        color: '#34495e',
+                                        fontSize: '0.95rem'
                                     }}>
                                         Фамилия *
                                     </label>
                                     <input
-                                        type="text"
                                         name="surname"
                                         value={studentForm.surname}
-                                        onChange={handleStudentFormChange}
+                                        onChange={handleFormChange}
                                         required
                                         style={{
                                             width: '100%',
                                             borderRadius: '6px',
                                             padding: '10px',
                                             border: '1px solid #ced4da',
-                                            fontSize: '1rem',
+                                            fontSize: '0.95rem',
                                             boxSizing: 'border-box'
                                         }}
                                         disabled={processing}
@@ -362,30 +395,31 @@ const StaffStudentsManagement = ({ groups, facultyName }) => {
                                     {validationErrors.surname && (
                                         <div style={{ color: '#e74c3c', fontSize: '0.8rem', marginTop: '4px' }}>
                                             {validationErrors.surname}
-                                        </div>)}
+                                        </div>
+                                    )}
                                 </div>
 
-                                <div>
+                                <div style={{ flex: 1 }}>
                                     <label style={{
                                         display: 'block',
                                         marginBottom: '8px',
                                         fontWeight: '500',
-                                        color: '#34495e'
+                                        color: '#34495e',
+                                        fontSize: '0.95rem'
                                     }}>
                                         Имя *
                                     </label>
                                     <input
-                                        type="text"
                                         name="name"
                                         value={studentForm.name}
-                                        onChange={handleStudentFormChange}
+                                        onChange={handleFormChange}
                                         required
                                         style={{
                                             width: '100%',
                                             borderRadius: '6px',
                                             padding: '10px',
                                             border: '1px solid #ced4da',
-                                            fontSize: '1rem',
+                                            fontSize: '0.95rem',
                                             boxSizing: 'border-box'
                                         }}
                                         disabled={processing}
@@ -393,88 +427,70 @@ const StaffStudentsManagement = ({ groups, facultyName }) => {
                                     {validationErrors.name && (
                                         <div style={{ color: '#e74c3c', fontSize: '0.8rem', marginTop: '4px' }}>
                                             {validationErrors.name}
-                                        </div>)}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
 
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '15px' }}>
-                                <div>
+                            <div style={{ display: 'flex', gap: '15px', marginBottom: '15px' }}>
+                                <div style={{ flex: 1 }}>
                                     <label style={{
                                         display: 'block',
                                         marginBottom: '8px',
                                         fontWeight: '500',
-                                        color: '#34495e'
+                                        color: '#34495e',
+                                        fontSize: '0.95rem'
                                     }}>
                                         Отчество
                                     </label>
                                     <input
-                                        type="text"
                                         name="secondName"
                                         value={studentForm.secondName}
-                                        onChange={handleStudentFormChange}
+                                        onChange={handleFormChange}
                                         style={{
                                             width: '100%',
                                             borderRadius: '6px',
                                             padding: '10px',
                                             border: '1px solid #ced4da',
-                                            fontSize: '1rem',
+                                            fontSize: '0.95rem',
                                             boxSizing: 'border-box'
                                         }}
                                         disabled={processing}
                                     />
-                                    {validationErrors.secondName && (
-                                        <div style={{ color: '#e74c3c', fontSize: '0.8rem', marginTop: '4px' }}>
-                                            {validationErrors.secondName}
-                                        </div>)}
                                 </div>
 
-                                <div>
+                                <div style={{ flex: 1 }}>
                                     <label style={{
                                         display: 'block',
                                         marginBottom: '8px',
                                         fontWeight: '500',
-                                        color: '#34495e'
+                                        color: '#34495e',
+                                        fontSize: '0.95rem'
                                     }}>
-                                        Номер студ. билета *
+                                        Дата рождения *
                                     </label>
                                     <input
-                                        type="text"
-                                        name="studentCardId"
-                                        value={studentForm.studentCardId}
-                                        onChange={handleStudentFormChange}
+                                        type="date"
+                                        name="birthDate"
+                                        value={studentForm.birthDate}
+                                        onChange={handleFormChange}
+                                        required
                                         style={{
                                             width: '100%',
                                             borderRadius: '6px',
                                             padding: '10px',
                                             border: '1px solid #ced4da',
-                                            fontSize: '1rem',
+                                            fontSize: '0.95rem',
                                             boxSizing: 'border-box'
                                         }}
                                         disabled={processing}
                                     />
-                                    {validationErrors.studentCardId && (
+                                    {validationErrors.birthDate && (
                                         <div style={{ color: '#e74c3c', fontSize: '0.8rem', marginTop: '4px' }}>
-                                            {validationErrors.studentCardId}
-                                        </div>)}
+                                            {validationErrors.birthDate}
+                                        </div>
+                                    )}
                                 </div>
-                            </div>
-                            <div style={{ marginBottom: '15px' }}>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#34495e' }}>
-                                    Дата рождения *
-                                </label>
-                                <input
-                                    type="date"
-                                    name="birthDate"
-                                    value={studentForm.birthDate}
-                                    onChange={handleStudentFormChange}
-                                    required
-                                    style={{ width: '100%', borderRadius: '6px', padding: '10px', border: '1px solid #ced4da', fontSize: '1rem', boxSizing: 'border-box' }}
-                                    disabled={processing}
-                                />
-                                {validationErrors.birthDate && (
-                                    <div style={{ color: '#e74c3c', fontSize: '0.8rem', marginTop: '4px' }}>
-                                        {validationErrors.birthDate}
-                                    </div>)}
                             </div>
 
                             <div style={{ marginBottom: '15px' }}>
@@ -482,7 +498,41 @@ const StaffStudentsManagement = ({ groups, facultyName }) => {
                                     display: 'block',
                                     marginBottom: '8px',
                                     fontWeight: '500',
-                                    color: '#34495e'
+                                    color: '#34495e',
+                                    fontSize: '0.95rem'
+                                }}>
+                                    Номер студ. билета *
+                                </label>
+                                <input
+                                    type="number"
+                                    name="studentCardId"
+                                    value={studentForm.studentCardId}
+                                    onChange={handleFormChange}
+                                    required
+                                    style={{
+                                        width: '100%',
+                                        borderRadius: '6px',
+                                        padding: '10px',
+                                        border: '1px solid #ced4da',
+                                        fontSize: '0.95rem',
+                                        boxSizing: 'border-box'
+                                    }}
+                                    disabled={processing}
+                                />
+                                {validationErrors.studentCardId && (
+                                    <div style={{ color: '#e74c3c', fontSize: '0.8rem', marginTop: '4px' }}>
+                                        {validationErrors.studentCardId}
+                                    </div>
+                                )}
+                            </div>
+
+                            <div style={{ marginBottom: '15px' }}>
+                                <label style={{
+                                    display: 'block',
+                                    marginBottom: '8px',
+                                    fontWeight: '500',
+                                    color: '#34495e',
+                                    fontSize: '0.95rem'
                                 }}>
                                     Email *
                                 </label>
@@ -490,13 +540,14 @@ const StaffStudentsManagement = ({ groups, facultyName }) => {
                                     type="email"
                                     name="email"
                                     value={studentForm.email}
-                                    onChange={handleStudentFormChange}
+                                    onChange={handleFormChange}
+                                    required
                                     style={{
                                         width: '100%',
                                         borderRadius: '6px',
                                         padding: '10px',
                                         border: '1px solid #ced4da',
-                                        fontSize: '1rem',
+                                        fontSize: '0.95rem',
                                         boxSizing: 'border-box'
                                     }}
                                     disabled={processing}
@@ -504,21 +555,35 @@ const StaffStudentsManagement = ({ groups, facultyName }) => {
                                 {validationErrors.email && (
                                     <div style={{ color: '#e74c3c', fontSize: '0.8rem', marginTop: '4px' }}>
                                         {validationErrors.email}
-                                    </div>)}
+                                    </div>
+                                )}
                             </div>
 
                             <div style={{ marginBottom: '15px' }}>
-                                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#34495e' }}>
+                                <label style={{
+                                    display: 'block',
+                                    marginBottom: '8px',
+                                    fontWeight: '500',
+                                    color: '#34495e',
+                                    fontSize: '0.95rem'
+                                }}>
                                     Пароль {!isEditMode && '*'}
                                 </label>
                                 <input
                                     type="password"
                                     name="password"
                                     value={studentForm.password}
-                                    onChange={handleStudentFormChange}
+                                    onChange={handleFormChange}
                                     required={!isEditMode}
                                     placeholder={isEditMode ? "Оставьте пустым, чтобы не изменять" : ""}
-                                    style={{ width: '100%', borderRadius: '6px', padding: '10px', border: '1px solid #ced4da', fontSize: '1rem', boxSizing: 'border-box' }}
+                                    style={{
+                                        width: '100%',
+                                        borderRadius: '6px',
+                                        padding: '10px',
+                                        border: '1px solid #ced4da',
+                                        fontSize: '0.95rem',
+                                        boxSizing: 'border-box'
+                                    }}
                                     disabled={processing}
                                 />
                                 {isEditMode && (
@@ -526,37 +591,69 @@ const StaffStudentsManagement = ({ groups, facultyName }) => {
                                         Введите новый пароль только если хотите его изменить
                                     </div>
                                 )}
+                                {validationErrors.password && (
+                                    <div style={{ color: '#e74c3c', fontSize: '0.8rem', marginTop: '4px' }}>
+                                        {validationErrors.password}
+                                    </div>
+                                )}
                             </div>
 
-                            {error && (
-                                <div style={{
-                                    color: '#e74c3c',
-                                    backgroundColor: '#fadbd8',
-                                    padding: '0.75rem',
-                                    borderRadius: '6px',
-                                    marginBottom: '1rem',
-                                    textAlign: 'center'
+                            <div style={{ marginBottom: '15px' }}>
+                                <label style={{
+                                    display: 'block',
+                                    marginBottom: '8px',
+                                    fontWeight: '500',
+                                    color: '#34495e',
+                                    fontSize: '0.95rem'
                                 }}>
-                                    {error}
-                                </div>
-                            )}
+                                    Группа *
+                                </label>
+                                <select
+                                    name="idGroup"
+                                    value={studentForm.idGroup}
+                                    onChange={handleFormChange}
+                                    required
+                                    style={{
+                                        width: '100%',
+                                        borderRadius: '6px',
+                                        padding: '10px',
+                                        border: '1px solid #ced4da',
+                                        fontSize: '0.95rem',
+                                        boxSizing: 'border-box'
+                                    }}
+                                    disabled={processing}
+                                >
+                                    <option value="">Выберите группу</option>
+                                    {groups.map(group => (
+                                        <option key={group.idGroup} value={group.idGroup}>
+                                            {group.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                {validationErrors.group && (
+                                    <div style={{ color: '#e74c3c', fontSize: '0.8rem', marginTop: '4px' }}>
+                                        {validationErrors.group}
+                                    </div>
+                                )}
+                            </div>
 
                             <div style={{
                                 display: 'flex',
                                 justifyContent: 'flex-end',
-                                gap: '10px'
+                                gap: '10px',
+                                marginTop: '20px'
                             }}>
                                 <button
                                     type="button"
-                                    onClick={() => setShowStudentModal(false)}
+                                    onClick={() => setShowModal(false)}
                                     style={{
-                                        padding: '0.75rem 1.5rem',
+                                        padding: '0.5rem 1rem',
                                         backgroundColor: '#e0e0e0',
                                         color: '#333',
                                         border: 'none',
                                         borderRadius: '6px',
-                                        fontSize: '1rem',
-                                        fontWeight: '600',
+                                        fontSize: '0.95rem',
+                                        fontWeight: '500',
                                         cursor: 'pointer',
                                         transition: 'background-color 0.3s'
                                     }}
@@ -566,15 +663,15 @@ const StaffStudentsManagement = ({ groups, facultyName }) => {
                                 </button>
                                 <button
                                     type="button"
-                                    onClick={handleSubmitStudent}
+                                    onClick={handleSubmit}
                                     style={{
-                                        padding: '0.75rem 1.5rem',
+                                        padding: '0.5rem 1rem',
                                         backgroundColor: '#3498db',
                                         color: 'white',
                                         border: 'none',
                                         borderRadius: '6px',
-                                        fontSize: '1rem',
-                                        fontWeight: '600',
+                                        fontSize: '0.95rem',
+                                        fontWeight: '500',
                                         cursor: 'pointer',
                                         transition: 'background-color 0.3s'
                                     }}

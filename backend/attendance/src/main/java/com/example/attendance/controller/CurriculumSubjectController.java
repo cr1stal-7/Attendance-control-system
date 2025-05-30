@@ -1,6 +1,8 @@
 package com.example.attendance.controller;
 
 import com.example.attendance.dto.CurriculumSubjectDTO;
+import com.example.attendance.dto.SemesterDTO;
+import com.example.attendance.dto.SubjectDTO;
 import com.example.attendance.model.Curriculum;
 import com.example.attendance.model.CurriculumSubject;
 import com.example.attendance.repository.CurriculumRepository;
@@ -93,6 +95,47 @@ public class CurriculumSubjectController {
                 savedSubject.getSemester().getType(),
                 savedSubject.getCurriculum().getIdCurriculum()
         ));
+    }
+
+    @GetMapping("/semesters")
+    public ResponseEntity<List<SemesterDTO>> getSemestersByCurriculum(@RequestParam Integer curriculumId) {
+        if (!curriculumRepository.existsById(curriculumId)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        List<CurriculumSubject> curriculumSubjects = curriculumSubjectRepository.findByCurriculumIdCurriculum(curriculumId);
+
+        List<SemesterDTO> semesters = curriculumSubjects.stream()
+                .map(cs -> cs.getSemester())
+                .distinct()
+                .map(s -> new SemesterDTO(
+                        s.getIdSemester(),
+                        s.getAcademicYear(),
+                        s.getType()
+                ))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(semesters);
+    }
+
+    @GetMapping("/subjects")
+    public ResponseEntity<List<SubjectDTO>> getSubjectsByCurriculum(@RequestParam Integer curriculumId) {
+        if (!curriculumRepository.existsById(curriculumId)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        List<CurriculumSubject> curriculumSubjects = curriculumSubjectRepository.findByCurriculumIdCurriculum(curriculumId);
+
+        List<SubjectDTO> subjects = curriculumSubjects.stream()
+                .map(cs -> cs.getSubject())
+                .distinct()
+                .map(s -> new SubjectDTO(
+                        s.getIdSubject(),
+                        s.getName()
+                ))
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(subjects);
     }
 
     @PutMapping("/{subjectId}")

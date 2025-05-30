@@ -8,22 +8,6 @@ const AdminLayout = () => {
     const [adminName, setAdminName] = useState('');
     const location = useLocation();
 
-    useEffect(() => {
-        const fetchAdminName = async () => {
-            try {
-                // const response = await axios.get('http://localhost:8080/api/admin', {
-                //     withCredentials: true
-                // });
-                // const admin = response.data;
-                // const name = `${admin.surname || ''} ${admin.name || ''} ${admin.secondName || ''}`.trim();
-                setAdminName('');
-            } catch (err) {
-                console.error('Ошибка при получении данных администратора:', err);
-            }
-        };
-        fetchAdminName();
-    }, []);
-
     const getActiveItem = () => {
         const path = location.pathname;
         // Учетные записи
@@ -60,13 +44,17 @@ const AdminLayout = () => {
         }}>
             <AdminHeader adminName={adminName} />
 
-            <div style={{ display: 'flex', flex: 1 }}>
+            <div style={{
+                display: 'flex',
+                flex: 1
+            }}>
                 <AdminMenu activeItem={getActiveItem()} />
 
                 <div style={{
                     flex: 1,
                     padding: '20px',
-                    marginLeft: '250px',
+                    marginLeft: '50px',
+                    overflow: 'auto',
                     fontFamily: 'Arial, sans-serif',
                     maxWidth: 'calc(100% - 250px)'
                 }}>

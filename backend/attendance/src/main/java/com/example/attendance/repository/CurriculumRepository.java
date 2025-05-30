@@ -9,8 +9,6 @@ import java.util.List;
 @Repository
 public interface CurriculumRepository extends JpaRepository<Curriculum, Integer> {
     List<Curriculum> findByEducationFormIdEducationForm(Integer educationFormId);
-
     List<Curriculum> findBySpecializationIdSpecialization(Integer specializationId);
-
     List<Curriculum> findBySpecializationIdSpecializationAndEducationFormIdEducationForm(Integer specializationId, Integer educationFormId);
 }

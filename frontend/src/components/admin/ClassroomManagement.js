@@ -40,7 +40,12 @@ const ClassroomManagement = () => {
             const response = await axios.get(url, {
                 withCredentials: true
             });
-            setClassrooms(response.data);
+            const sortedClassrooms = response.data.sort((a, b) => {
+                const numA = parseInt(a.number, 10);
+                const numB = parseInt(b.number, 10);
+                return numA - numB;
+            });
+            setClassrooms(sortedClassrooms);
         } catch (err) {
             console.error('Ошибка загрузки аудиторий:', err);
             setError('Не удалось загрузить список аудиторий');
@@ -147,7 +152,7 @@ const ClassroomManagement = () => {
     };
 
     return (
-        <div style={{ maxWidth: '1050px', margin: '0 auto', padding: '20px' }}>
+        <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                 <h2 style={{ color: '#2c3e50', fontSize: '1.4rem', margin: 0 }}>Список аудиторий</h2>
                 <button
@@ -303,6 +308,9 @@ const ClassroomManagement = () => {
                                     Номер аудитории *
                                 </label>
                                 <input
+                                    type="number"
+                                    min="1"
+                                    max="1100"
                                     name="number"
                                     value={classroomForm.number}
                                     onChange={handleFormChange}
@@ -335,7 +343,9 @@ const ClassroomManagement = () => {
                                     Этаж *
                                 </label>
                                 <input
-                                    pattern="[0-9]*"
+                                    type="number"
+                                    min="1"
+                                    max="10"
                                     name="floor"
                                     value={classroomForm.floor}
                                     onChange={handleFormChange}

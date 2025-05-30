@@ -92,8 +92,8 @@ const TeacherAttendance = () => {
         }
     };
 
-    const handleClassClick = (classId) => {
-        navigate(`/teacher/attendance/${classId}`);
+    const handleClassClick = (classId, groupId) => {
+        navigate(`/teacher/attendance/${classId}?groupId=${groupId}`);
     };
 
     const formatDate = (dateString) => {
@@ -114,7 +114,7 @@ const TeacherAttendance = () => {
     };
 
     return (
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '950px', margin: '0 auto' }}>
             <h1 style={{ color: '#2c3e50', marginBottom: '10px', fontSize: '1.8rem' }}>
                 Учет посещаемости
             </h1>
@@ -184,7 +184,7 @@ const TeacherAttendance = () => {
                         value={dateFilter}
                         onChange={(e) => setDateFilter(e.target.value)}
                         style={{ padding: '0.5rem', fontSize: '1rem', borderRadius: '4px', border: '1px solid #ddd' }}
-                        disabled={loading}
+                        disabled={false}
                     />
                     <button
                         onClick={() => setDateFilter('')}
@@ -198,7 +198,6 @@ const TeacherAttendance = () => {
                             borderRadius: '4px',
                             cursor: 'pointer'
                         }}
-                        disabled={loading}
                     >
                         Сбросить
                     </button>
@@ -223,8 +222,8 @@ const TeacherAttendance = () => {
                     }}>
                         {classes.map(cls => (
                             <div
-                                key={cls.idClass}
-                                onClick={() => handleClassClick(cls.idClass)}
+                                key={`${cls.idClass}-${cls.groupId}`}
+                                onClick={() => handleClassClick(cls.idClass, cls.groupId)}
                                 style={{
                                     padding: '15px',
                                     backgroundColor: '#f8f9fa',

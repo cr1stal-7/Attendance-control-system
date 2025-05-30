@@ -42,7 +42,14 @@ const CurriculumManagement = () => {
                 params,
                 withCredentials: true
             });
-            setCurricula(response.data);
+            const sortedCurricula = response.data.sort((a, b) => {
+                const [startA, endA] = a.academicYear.split('-').map(Number);
+                const [startB, endB] = b.academicYear.split('-').map(Number);
+                const yearCompare = startA - startB || endA - endB;
+                if (yearCompare !== 0) return yearCompare;
+                return a.name.localeCompare(b.name);
+            });
+            setCurricula(sortedCurricula);
         } catch (err) {
             console.error('Ошибка загрузки учебных планов:', err);
             setError('Не удалось загрузить список учебных планов');
@@ -174,7 +181,7 @@ const CurriculumManagement = () => {
     };
 
     return (
-        <div style={{ maxWidth: '1050px', margin: '0 auto', padding: '20px' }}>
+        <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                 <h2 style={{ color: '#2c3e50', fontSize: '1.4rem', margin: 0 }}>Список учебных планов</h2>
                 <button
@@ -281,6 +288,7 @@ const CurriculumManagement = () => {
                                         style={{
                                             padding: '0.3rem 0.6rem',
                                             marginRight: '5px',
+                                            marginBlock: '5px',
                                             backgroundColor: '#f39c12',
                                             color: 'white',
                                             border: 'none',
@@ -421,7 +429,9 @@ const CurriculumManagement = () => {
                                     Срок обучения *
                                 </label>
                                 <input
-                                    pattern="[0-9]*"
+                                    type="number"
+                                    min="1"
+                                    max="6"
                                     name="duration"
                                     value={curriculumForm.duration}
                                     onChange={handleFormChange}

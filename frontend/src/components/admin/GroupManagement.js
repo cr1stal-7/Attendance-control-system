@@ -42,14 +42,16 @@ const GroupManagement = () => {
                 url += `curriculumId=${curriculumId}`;
             }
 
-            // Удаляем последний символ '&' если он есть
             url = url.endsWith('&') ? url.slice(0, -1) : url;
             url = url.endsWith('?') ? url.slice(0, -1) : url;
 
             const response = await axios.get(url, {
                 withCredentials: true
             });
-            setGroups(response.data);
+            const sortedGroups = response.data.sort((a, b) => {
+                return a.name.localeCompare(b.name);
+            });
+            setGroups(sortedGroups);
         } catch (err) {
             console.error('Ошибка загрузки групп:', err);
             setError('Не удалось загрузить список групп');
@@ -174,7 +176,7 @@ const GroupManagement = () => {
     };
 
     return (
-        <div style={{ maxWidth: '1050px', margin: '0 auto', padding: '20px' }}>
+        <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
                 <h2 style={{ color: '#2c3e50', fontSize: '1.4rem', margin: 0 }}>Список групп</h2>
                 <button
@@ -281,6 +283,7 @@ const GroupManagement = () => {
                                         style={{
                                             padding: '0.3rem 0.6rem',
                                             marginRight: '5px',
+                                            marginBlock: '5px',
                                             backgroundColor: '#f39c12',
                                             color: 'white',
                                             border: 'none',

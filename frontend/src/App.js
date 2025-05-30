@@ -36,6 +36,8 @@ import CurriculumSubjectsManagement from "./components/admin/CurriculumSubjectsM
 import GroupManagement from "./components/admin/GroupManagement";
 import StudentManagement from "./components/admin/StudentManagement";
 import EmployeeManagement from "./components/admin/EmployeeManagement";
+import AcademicClassesManagement from "./components/admin/AcademicClassesManagement";
+import StaffAcademicClassesManagement from "./components/staff/StaffAcademicClassManagement";
 
 function App() {
   return (
@@ -62,13 +64,14 @@ function App() {
           <Route path="structure/positions" element={<PositionManagement />} />
           <Route path="attendance/statuses" element={<AttendanceStatusManagement />} />
           <Route path="attendance/control-points" element={<ControlPointManagement />} />
+          <Route path="schedule/classes" element={<AcademicClassesManagement />} />
           <Route path="schedule/class-types" element={<ClassTypeManagement />} />
           <Route index element={<AdminWelcome />} />
         </Route>
         <Route path="/staff" element={<StaffLayout />}>
           <Route path="reports" element={<StaffReports />} />
           <Route path="add-users" element={<StaffAddUsers />} />
-          <Route path="add-classes" element={<StaffAddClasses />} />
+          <Route path="add-classes" element={<StaffAcademicClassesManagement />} />
           <Route path="settings" element={<StaffSettings />} />
           <Route path="long-absence" element={<StaffLongAbsence />} />
           <Route index element={<StaffReports />} />

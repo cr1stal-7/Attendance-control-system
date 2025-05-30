@@ -7,26 +7,69 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
 public interface AcademicClassRepository extends JpaRepository<AcademicClass, Integer> {
 
-    @Query("SELECT c FROM AcademicClass c WHERE c.curriculumSubject.idCurriculumSubject  = :curriculumSubjectId")
-    List<AcademicClass> findByCurriculumSubjectId(@Param("curriculumSubjectId") Integer curriculumSubjectId);
-
-    @Query("SELECT c FROM AcademicClass c WHERE c.curriculumSubject.idCurriculumSubject  = :curriculumSubjectId " +
-            "AND CAST(c.datetime AS date) = :date")
-    List<AcademicClass> findByCurriculumSubjectAndDate(
-            @Param("curriculumSubjectId") Integer curriculumSubjectId,
-            @Param("date") LocalDate date);
-
-    @Query("SELECT c FROM AcademicClass c WHERE c.curriculumSubject.semester.idSemester = :semesterId")
-    List<AcademicClass> findBySemesterId(@Param("semesterId") Integer semesterId);
-
-    @Query("SELECT c FROM AcademicClass c WHERE c.curriculumSubject.semester.idSemester = :semesterId " +
-            "AND CAST(c.datetime AS date) = :date")
-    List<AcademicClass> findBySemesterAndDate(
+    @Query("SELECT c FROM AcademicClass c " +
+            "JOIN c.curriculumSubject cs " +
+            "JOIN cs.curriculum cu " +
+            "JOIN cs.semester s " +
+            "JOIN c.groups g " +
+            "WHERE cu.idCurriculum = :curriculumId " +
+            "AND s.idSemester = :semesterId " +
+            "AND (:subjectId IS NULL OR cs.subject.idSubject = :subjectId) " +
+            "AND g.department.idDepartment = :departmentId")
+    List<AcademicClass> findByCurriculumAndSemesterAndDepartment(
+            @Param("curriculumId") Integer curriculumId,
             @Param("semesterId") Integer semesterId,
-            @Param("date") LocalDate date);
+            @Param("subjectId") Integer subjectId,
+            @Param("departmentId") Integer departmentId);
+
+    @Query("SELECT c FROM AcademicClass c " +
+            "JOIN c.curriculumSubject cs " +
+            "JOIN cs.curriculum cu " +
+            "JOIN cs.semester s " +
+            "JOIN c.groups g " +
+            "WHERE cu.idCurriculum = :curriculumId " +
+            "AND s.idSemester = :semesterId " +
+            "AND (:subjectId IS NULL OR cs.subject.idSubject = :subjectId) " +
+            "AND c.datetime >= :startDate AND c.datetime < :endDate " +
+            "AND g.department.idDepartment = :departmentId")
+    List<AcademicClass> findByCurriculumAndSemesterAndDateAndDepartment(
+            @Param("curriculumId") Integer curriculumId,
+            @Param("semesterId") Integer semesterId,
+            @Param("subjectId") Integer subjectId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate,
+            @Param("departmentId") Integer departmentId);
+
+    @Query("SELECT c FROM AcademicClass c " +
+            "JOIN c.curriculumSubject cs " +
+            "JOIN cs.curriculum cu " +
+            "JOIN cs.semester s " +
+            "WHERE cu.idCurriculum = :curriculumId " +
+            "AND s.idSemester = :semesterId " +
+            "AND (:subjectId IS NULL OR cs.subject.idSubject = :subjectId)")
+    List<AcademicClass> findByCurriculumAndSemester(
+            @Param("curriculumId") Integer curriculumId,
+            @Param("semesterId") Integer semesterId,
+            @Param("subjectId") Integer subjectId);
+
+    @Query("SELECT c FROM AcademicClass c " +
+            "JOIN c.curriculumSubject cs " +
+            "JOIN cs.curriculum cu " +
+            "JOIN cs.semester s " +
+            "WHERE cu.idCurriculum = :curriculumId " +
+            "AND s.idSemester = :semesterId " +
+            "AND (:subjectId IS NULL OR cs.subject.idSubject = :subjectId) " +
+            "AND c.datetime >= :startDate AND c.datetime < :endDate")
+    List<AcademicClass> findByCurriculumAndSemesterAndDate(
+            @Param("curriculumId") Integer curriculumId,
+            @Param("semesterId") Integer semesterId,
+            @Param("subjectId") Integer subjectId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
 }

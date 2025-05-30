@@ -24,7 +24,13 @@ const SemesterManagement = () => {
             const response = await axios.get('http://localhost:8080/api/admin/education/semesters', {
                 withCredentials: true
             });
-            setSemesters(response.data);
+            const sortedSemesters = response.data.sort((a, b) => {
+                const [startA, endA] = a.academicYear.split('-').map(Number);
+                const [startB, endB] = b.academicYear.split('-').map(Number);
+                return startA - startB || endA - endB;
+            });
+
+            setSemesters(sortedSemesters);
         } catch (err) {
             console.error('Ошибка загрузки семестров:', err);
             setError('Не удалось загрузить список семестров');
@@ -116,7 +122,7 @@ const SemesterManagement = () => {
     };
 
     return (
-        <div style={{ maxWidth: '1050px', margin: '0 auto', padding: '20px' }}>
+        <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2 style={{ color: '#2c3e50', fontSize: '1.4rem', margin: 0 }}>Список семестров</h2>
                 <button

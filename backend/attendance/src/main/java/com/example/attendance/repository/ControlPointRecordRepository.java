@@ -9,7 +9,6 @@ import java.util.Optional;
 
 @Repository
 public interface ControlPointRecordRepository extends JpaRepository<ControlPointRecord, Integer> {
-
     Optional<ControlPointRecord> findTopByStudentAndDirectionOrderByDatetimeDesc(
             Student student,
             String direction

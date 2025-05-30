@@ -13,4 +13,5 @@ public class ClassDTO {
     private String topic;
     private String subjectName;
     private String groupName;
+    private Integer groupId;
 }

@@ -125,7 +125,7 @@ const StaffReports = () => {
     const subjects = getAllSubjects();
 
     return (
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
+        <div style={{ maxWidth: '950px', margin: '0 auto' }}>
             <h1 style={{
                 color: '#2c3e50',
                 marginBottom: '10px',
@@ -238,7 +238,7 @@ const StaffReports = () => {
                     <table style={{
                         width: '100%',
                         borderCollapse: 'collapse',
-                        minWidth: '1000px'
+                        minWidth: '950px'
                     }}>
                         <thead>
                         <tr style={{ backgroundColor: '#2c3e50', color: 'white' }}>
