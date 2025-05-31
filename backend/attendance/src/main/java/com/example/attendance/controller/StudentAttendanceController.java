@@ -8,7 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -77,12 +77,18 @@ public class StudentAttendanceController {
                                 Collectors.toList(),
                                 list -> {
                                     AttendanceStats stats = new AttendanceStats();
-                                    stats.totalClasses = list.size();
+                                    stats.totalClasses = (int) list.stream()
+                                            .map(a -> a.getClassEntity().getIdClass())
+                                            .distinct()
+                                            .count();
                                     stats.missedClasses = (int) list.stream()
                                             .filter(a -> a.getStatus() != null &&
                                                     ("Отсутствие".equals(a.getStatus().getName()) ||
                                                             "Уважительная причина".equals(a.getStatus().getName())))
+                                            .map(a -> a.getClassEntity().getIdClass())
+                                            .distinct()
                                             .count();
+
                                     return stats;
                                 }
                         )
@@ -128,27 +134,29 @@ public class StudentAttendanceController {
                         semesterId
                 );
 
-        attendances.sort(Comparator.comparing(a -> a.getClassEntity().getDatetime()));
-
-        List<String> dates = attendances.stream()
-                .map(a -> a.getClassEntity().getDatetime().toLocalDate().toString())
-                .distinct()
-                .collect(Collectors.toList());
-
-        Map<String, String> attendanceByDate = attendances.stream()
-                .collect(Collectors.toMap(
-                        a -> a.getClassEntity().getDatetime().toLocalDate().toString(),
-                        a -> a.getStatus() != null ? a.getStatus().getName() : "",
-                        (existing, replacement) -> existing
+        Map<LocalDate, List<Attendance>> attendancesByDate = attendances.stream()
+                .collect(Collectors.groupingBy(
+                        a -> a.getClassEntity().getDatetime().toLocalDate()
                 ));
 
-        // Рассчитываем процент посещаемости
-        long totalClasses = dates.size();
+        List<String> dates = attendancesByDate.keySet().stream()
+                .sorted()
+                .map(LocalDate::toString)
+                .collect(Collectors.toList());
+
+        long totalClasses = attendances.stream()
+                .map(a -> a.getClassEntity().getIdClass())
+                .distinct()
+                .count();
+
         long attendedClasses = attendances.stream()
                 .filter(a -> a.getStatus() == null ||
                         !("Отсутствие".equals(a.getStatus().getName()) ||
                                 "Уважительная причина".equals(a.getStatus().getName())))
+                .map(a -> a.getClassEntity().getIdClass())
+                .distinct()
                 .count();
+
         int attendancePercentage = totalClasses == 0 ? 0 :
                 (int) Math.round((double) attendedClasses / totalClasses * 100);
 
@@ -157,14 +165,30 @@ public class StudentAttendanceController {
                 student.get().getName() + " " + student.get().getSecondName());
         response.put("subject", subject);
         response.put("dates", dates);
+
         response.put("attendances", dates.stream()
-                .map(date -> {
+                .map(dateStr -> {
+                    LocalDate date = LocalDate.parse(dateStr);
+                    List<Attendance> dateAttendances = attendancesByDate.get(date);
+
+                    String statuses = dateAttendances.stream()
+                            .map(a -> {
+                                if (a.getStatus() == null) return "П";
+                                switch (a.getStatus().getName()) {
+                                    case "Отсутствие": return "ОТ";
+                                    case "Уважительная причина": return "УП";
+                                    default: return "П";
+                                }
+                            })
+                            .collect(Collectors.joining(", "));
+
                     Map<String, String> att = new HashMap<>();
-                    att.put("date", date);
-                    att.put("status", attendanceByDate.getOrDefault(date, ""));
+                    att.put("date", dateStr);
+                    att.put("status", statuses);
                     return att;
                 })
                 .collect(Collectors.toList()));
+
         response.put("attendancePercentage", attendancePercentage);
         response.put("totalClasses", totalClasses);
         response.put("attendedClasses", attendedClasses);

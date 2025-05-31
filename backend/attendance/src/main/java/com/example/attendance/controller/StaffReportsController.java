@@ -98,7 +98,6 @@ public class StaffReportsController {
         }
 
         StudentGroup group = groupOpt.get();
-
         Curriculum curriculum = group.getCurriculum();
         if (curriculum == null) {
             return ResponseEntity.ok(Collections.emptyList());
@@ -127,24 +126,24 @@ public class StaffReportsController {
                                 semesterId
                         );
 
-                /* if (attendances.isEmpty()) {
-                    studentReport.put(subject.getName(), 0); // или "-" если предпочитаете
-                    continue;
-                }*/
-
-                int totalClasses = attendances.size();
-                int attendedClasses = (int) attendances.stream()
-                        .filter(Attendance::getPresent)
+                long totalClasses = attendances.stream()
+                        .map(a -> a.getClassEntity().getIdClass())
+                        .distinct()
                         .count();
+
+                long attendedClasses = attendances.stream()
+                        .filter(Attendance::getPresent)
+                        .map(a -> a.getClassEntity().getIdClass())
+                        .distinct()
+                        .count();
+
                 int attendancePercentage = totalClasses > 0 ?
                         (int) Math.round((double) attendedClasses / totalClasses * 100) : 0;
 
                 studentReport.put(subject.getName(), attendancePercentage);
             }
-
             reports.add(studentReport);
         }
-
         return ResponseEntity.ok(reports);
     }
 
@@ -169,7 +168,10 @@ public class StaffReportsController {
         for (StudentGroup group : groups) {
             if (group.getCurriculum() != null) {
                 List<Subject> groupSubjects = curriculumSubjectRepository
-                        .findSubjectsByCurriculumIdAndSemesterId(group.getCurriculum().getIdCurriculum(), semesterId);
+                        .findSubjectsByCurriculumIdAndSemesterId(
+                                group.getCurriculum().getIdCurriculum(),
+                                semesterId
+                        );
                 facultySubjects.addAll(groupSubjects);
             }
         }
@@ -193,7 +195,6 @@ public class StaffReportsController {
 
             List<Subject> groupSubjects = curriculumSubjectRepository
                     .findSubjectsByCurriculumIdAndSemesterId(curriculum.getIdCurriculum(), semesterId);
-
             Set<Integer> groupSubjectIds = groupSubjects.stream()
                     .map(Subject::getIdSubject)
                     .collect(Collectors.toSet());
@@ -206,13 +207,25 @@ public class StaffReportsController {
                     continue;
                 }
 
-               /* if (attendances.isEmpty()) {
-                    studentReport.put(subject.getName(), 0); // или "-" если предпочитаете
-                    continue;
-                }*/
+                List<Attendance> allGroupAttendances = attendanceRepository
+                        .findByGroupAndSubjectAndSemester(
+                                group.getIdGroup(),
+                                subject.getIdSubject(),
+                                semesterId
+                        );
 
-                double totalAttendancePercentage = 0;
-                int studentsWithAttendance = 0;
+                long totalPossibleClasses = allGroupAttendances.stream()
+                        .map(a -> a.getClassEntity().getIdClass())
+                        .distinct()
+                        .count();
+
+//                if (totalPossibleClasses == 0) {
+//                    groupReport.put(subject.getName(), "-");
+//                    continue;
+//                }
+
+                double totalAttendance = 0;
+                int studentsCounted = 0;
 
                 for (Student student : students) {
                     List<Attendance> attendances = attendanceRepository
@@ -222,27 +235,25 @@ public class StaffReportsController {
                                     semesterId
                             );
 
-                    int totalClasses = attendances.size();
-                    if (totalClasses == 0) continue;
-
-                    int attendedClasses = (int) attendances.stream()
+                    long attendedClasses = attendances.stream()
                             .filter(Attendance::getPresent)
+                            .map(a -> a.getClassEntity().getIdClass())
+                            .distinct()
                             .count();
-                    int studentAttendancePercentage =
-                            (int) Math.round((double) attendedClasses / totalClasses * 100);
 
-                    totalAttendancePercentage += studentAttendancePercentage;
-                    studentsWithAttendance++;
+                    if (totalPossibleClasses > 0) {
+                        double studentPercentage = (double) attendedClasses / totalPossibleClasses * 100;
+                        totalAttendance += studentPercentage;
+                        studentsCounted++;
+                    }
                 }
 
-                double averageAttendancePercentage = studentsWithAttendance > 0 ?
-                        totalAttendancePercentage / studentsWithAttendance : 0;
-                groupReport.put(subject.getName(), Math.round(averageAttendancePercentage));
+                int averageAttendance = studentsCounted > 0 ?
+                        (int) Math.round(totalAttendance / studentsCounted) : 0;
+                groupReport.put(subject.getName(), averageAttendance);
             }
-
             reports.add(groupReport);
         }
-
         return ResponseEntity.ok(reports);
     }
 }

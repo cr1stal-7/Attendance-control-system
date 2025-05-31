@@ -43,7 +43,8 @@ const StaffReports = () => {
                 'http://localhost:8080/api/staff/groups',
                 { withCredentials: true }
             );
-            setGroups(response.data);
+            const sortedGroups = response.data.sort((a, b) => a.name.localeCompare(b.name));
+            setGroups(sortedGroups);
         } catch (err) {
             console.error('Ошибка при получении списка групп:', err);
         }
@@ -302,7 +303,9 @@ const StaffReports = () => {
                         </tr>
                         </thead>
                         <tbody>
-                        {reports.map((report, index) => (
+                        {reports
+                            .sort((a, b) => a.group.localeCompare(b.group))
+                            .map((report, index) => (
                             <tr key={index} style={{
                                 borderBottom: '1px solid #ddd',
                                 ':hover': { backgroundColor: '#f5f5f5' }

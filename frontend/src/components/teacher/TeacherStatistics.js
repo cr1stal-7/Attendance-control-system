@@ -279,12 +279,23 @@ const AttendanceTable = ({ students }) => {
                                 style={{
                                     ...tableCellStyle,
                                     textAlign: 'center',
-                                    color: att.status === 'Отсутствие' ? '#e74c3c' :
-                                        att.status === 'Уважительная причина' ? '#f39c12' : '#27ae60'
+                                    whiteSpace: 'nowrap'
                                 }}
                             >
-                                {att.status === 'Отсутствие' ? 'ОТ' :
-                                    att.status === 'Уважительная причина' ? 'УП' : 'П'}
+                                {att.status.split(', ').map((status, i) => (
+                                    <span
+                                        key={i}
+                                        style={{
+                                            color: status === 'ОТ' ? '#e74c3c' :
+                                                status === 'УП' ? '#f39c12' : '#27ae60',
+                                            display: 'inline-block',
+                                            margin: '0 2px'
+                                        }}
+                                    >
+                                    {status}
+                                        {i < att.status.split(', ').length - 1 ? ',' : ''}
+                                    </span>
+                                ))}
                             </td>
                         ))}
 

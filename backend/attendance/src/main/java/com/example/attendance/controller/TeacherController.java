@@ -124,10 +124,14 @@ public class TeacherController {
             List<Attendance> groupAttendances = attendanceRepository
                     .findByGroupAndSubjectAndSemester(groupId, subjectId, semesterId);
 
-            List<String> classDates = groupAttendances.stream()
-                    .map(a -> a.getClassEntity().getDatetime().toLocalDate().toString())
-                    .distinct()
+            Map<LocalDate, List<Attendance>> attendancesByDate = groupAttendances.stream()
+                    .collect(Collectors.groupingBy(
+                            a -> a.getClassEntity().getDatetime().toLocalDate()
+                    ));
+
+            List<String> classDates = attendancesByDate.keySet().stream()
                     .sorted()
+                    .map(LocalDate::toString)
                     .collect(Collectors.toList());
 
             List<Map<String, Object>> statistics = students.stream()
@@ -136,19 +140,24 @@ public class TeacherController {
                                 .filter(a -> a.getStudent().getIdStudent().equals(student.getIdStudent()))
                                 .collect(Collectors.toList());
 
-                        Map<String, String> attendanceByDate = studentAttendances.stream()
-                                .collect(Collectors.toMap(
-                                        a -> a.getClassEntity().getDatetime().toLocalDate().toString(),
-                                        a -> a.getStatus() != null ? a.getStatus().getName() : "",
-                                        (existing, replacement) -> existing
+                        Map<LocalDate, List<Attendance>> studentAttendancesByDate = studentAttendances.stream()
+                                .collect(Collectors.groupingBy(
+                                        a -> a.getClassEntity().getDatetime().toLocalDate()
                                 ));
 
-                        int totalClasses = classDates.size();
+                        int totalClasses = (int) groupAttendances.stream()
+                                .map(a -> a.getClassEntity().getIdClass())
+                                .distinct()
+                                .count();
+
                         int attendedClasses = (int) studentAttendances.stream()
                                 .filter(a -> a.getStatus() == null ||
                                         !("Отсутствие".equals(a.getStatus().getName()) ||
                                                 "Уважительная причина".equals(a.getStatus().getName())))
+                                .map(a -> a.getClassEntity().getIdClass())
+                                .distinct()
                                 .count();
+
                         int attendancePercentage = totalClasses == 0 ? 0 :
                                 (int) Math.round((double) attendedClasses / totalClasses * 100);
 
@@ -162,10 +171,32 @@ public class TeacherController {
                         studentStats.put("attendancePercentage", attendancePercentage);
 
                         studentStats.put("attendanceByDate", classDates.stream()
-                                .map(date -> {
+                                .map(dateStr -> {
+                                    LocalDate date = LocalDate.parse(dateStr);
+                                    List<Attendance> dateAttendances = studentAttendancesByDate.getOrDefault(date, Collections.emptyList());
+
+                                    String statuses = dateAttendances.stream()
+                                            .map(a -> {
+                                                if (a.getStatus() == null) return "П";
+                                                switch (a.getStatus().getName()) {
+                                                    case "Отсутствие": return "ОТ";
+                                                    case "Уважительная причина": return "УП";
+                                                    default: return "П";
+                                                }
+                                            })
+                                            .collect(Collectors.joining(", "));
+
+                                    if (dateAttendances.isEmpty() && attendancesByDate.containsKey(date)) {
+                                        int classesCount = (int) attendancesByDate.get(date).stream()
+                                                .map(a -> a.getClassEntity().getIdClass())
+                                                .distinct()
+                                                .count();
+                                        statuses = String.join(", ", Collections.nCopies(classesCount, "ОТ"));
+                                    }
+
                                     Map<String, String> att = new HashMap<>();
-                                    att.put("date", date);
-                                    att.put("status", attendanceByDate.getOrDefault(date, ""));
+                                    att.put("date", dateStr);
+                                    att.put("status", statuses);
                                     return att;
                                 })
                                 .collect(Collectors.toList()));

@@ -30,6 +30,6 @@ public class Attendance {
     private Student student;
 
     public boolean getPresent() {
-        return status != null && "Присутствие".equals(status.getName());
+        return status == null || "Присутствие".equals(status.getName());
     }
 }
