@@ -245,6 +245,7 @@ const RoleManagement = () => {
                                 <input
                                     type="text"
                                     name="name"
+                                    maxLength={50}
                                     value={roleForm.name}
                                     onChange={handleFormChange}
                                     required

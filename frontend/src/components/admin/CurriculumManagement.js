@@ -365,7 +365,9 @@ const CurriculumManagement = () => {
                                     Название *
                                 </label>
                                 <input
+                                    type="text"
                                     name="name"
+                                    maxLength={100}
                                     value={curriculumForm.name}
                                     onChange={handleFormChange}
                                     required
@@ -397,7 +399,9 @@ const CurriculumManagement = () => {
                                     Учебный год *
                                 </label>
                                 <input
+                                    type="text"
                                     name="academicYear"
+                                    maxLength={10}
                                     value={curriculumForm.academicYear}
                                     onChange={handleFormChange}
                                     required
@@ -435,6 +439,11 @@ const CurriculumManagement = () => {
                                     name="duration"
                                     value={curriculumForm.duration}
                                     onChange={handleFormChange}
+                                    onKeyDown={(e) => {
+                                        if (e.key === '-' || e.key === 'e' || e.key === 'E') {
+                                            e.preventDefault();
+                                        }
+                                    }}
                                     required
                                     style={{
                                         width: '100%',

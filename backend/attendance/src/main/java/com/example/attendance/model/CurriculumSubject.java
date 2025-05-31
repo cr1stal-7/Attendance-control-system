@@ -26,7 +26,7 @@ public class CurriculumSubject {
     private Semester semester;
 
     @ManyToOne
-    @JoinColumn(name = "id_curriculum")
+    @JoinColumn(name = "id_curriculum", nullable = false)
     private Curriculum curriculum;
 
     @OneToMany(mappedBy = "curriculumSubject", cascade = CascadeType.ALL)

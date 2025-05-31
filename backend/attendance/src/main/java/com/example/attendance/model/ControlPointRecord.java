@@ -27,6 +27,6 @@ public class ControlPointRecord {
     private ControlPoint controlPoint;
 
     @ManyToOne
-    @JoinColumn(name = "id_student", referencedColumnName = "id_student")
+    @JoinColumn(name = "id_student", nullable = false)
     private Student student;
 }

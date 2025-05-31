@@ -191,7 +191,11 @@ const EmployeeManagement = () => {
         if (!employeeForm.surname) errors.surname = "Фамилия обязательна";
         if (!employeeForm.name) errors.name = "Имя обязательно";
         if (!employeeForm.birthDate) errors.birthDate = "Дата рождения обязательна";
-        if (!employeeForm.email) errors.email = "Email обязателен";
+        if (!employeeForm.email) {
+            errors.email = 'Email обязателен';
+        } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(employeeForm.email)) {
+            errors.email = 'Пожалуйста, введите корректный email';
+        }
         if (!employeeForm.idDepartment) errors.department = "Факультет обязателен";
         if (!employeeForm.idPosition) errors.position = "Должность обязательна";
         if (!employeeForm.idRole) errors.role = "Роль обязательна";
@@ -439,7 +443,9 @@ const EmployeeManagement = () => {
                                         Фамилия *
                                     </label>
                                     <input
+                                        type="text"
                                         name="surname"
+                                        maxLength={50}
                                         value={employeeForm.surname}
                                         onChange={handleFormChange}
                                         required
@@ -471,7 +477,9 @@ const EmployeeManagement = () => {
                                         Имя *
                                     </label>
                                     <input
+                                        type="text"
                                         name="name"
+                                        maxLength={50}
                                         value={employeeForm.name}
                                         onChange={handleFormChange}
                                         required
@@ -502,7 +510,9 @@ const EmployeeManagement = () => {
                                         fontSize: '0.95rem'
                                     }}>Отчество</label>
                                     <input
+                                        type="text"
                                         name="secondName"
+                                        maxLength={50}
                                         value={employeeForm.secondName}
                                         onChange={handleFormChange}
                                         style={{
@@ -522,7 +532,9 @@ const EmployeeManagement = () => {
                                         fontWeight: '500',
                                         color: '#34495e',
                                         fontSize: '0.95rem'
-                                    }}>Дата рождения *</label>
+                                    }}>
+                                        Дата рождения *
+                                    </label>
                                     <input
                                         type="date"
                                         name="birthDate"
@@ -560,6 +572,7 @@ const EmployeeManagement = () => {
                                 <input
                                     type="email"
                                     name="email"
+                                    maxLength={100}
                                     value={employeeForm.email}
                                     onChange={handleFormChange}
                                     required
@@ -593,6 +606,7 @@ const EmployeeManagement = () => {
                                 <input
                                     type="password"
                                     name="password"
+                                    maxLength={100}
                                     value={employeeForm.password}
                                     onChange={handleFormChange}
                                     required={!isEditMode}

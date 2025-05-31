@@ -360,7 +360,9 @@ const GroupManagement = () => {
                                     Название группы *
                                 </label>
                                 <input
+                                    type="text"
                                     name="name"
+                                    maxLength={20}
                                     value={groupForm.name}
                                     onChange={handleFormChange}
                                     required
@@ -398,6 +400,11 @@ const GroupManagement = () => {
                                     name="course"
                                     value={groupForm.course}
                                     onChange={handleFormChange}
+                                    onKeyDown={(e) => {
+                                        if (e.key === '-' || e.key === 'e' || e.key === 'E') {
+                                            e.preventDefault();
+                                        }
+                                    }}
                                     required
                                     style={{
                                         width: '100%',

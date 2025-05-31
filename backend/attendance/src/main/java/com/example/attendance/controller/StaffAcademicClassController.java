@@ -7,8 +7,10 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -23,19 +25,67 @@ public class StaffAcademicClassController {
     private final ClassTypeRepository classTypeRepository;
     private final EmployeeRepository employeeRepository;
     private final StudentGroupRepository groupRepository;
+    private final CurriculumRepository curriculumRepository;
 
     public StaffAcademicClassController(AcademicClassRepository classRepository,
-                                   CurriculumSubjectRepository curriculumSubjectRepository,
-                                   ClassroomRepository classroomRepository,
-                                   ClassTypeRepository classTypeRepository,
-                                   EmployeeRepository employeeRepository,
-                                   StudentGroupRepository groupRepository) {
+                                        CurriculumSubjectRepository curriculumSubjectRepository,
+                                        ClassroomRepository classroomRepository,
+                                        ClassTypeRepository classTypeRepository,
+                                        EmployeeRepository employeeRepository,
+                                        StudentGroupRepository groupRepository,
+                                        CurriculumRepository curriculumRepository) {
         this.classRepository = classRepository;
         this.curriculumSubjectRepository = curriculumSubjectRepository;
         this.classroomRepository = classroomRepository;
         this.classTypeRepository = classTypeRepository;
         this.employeeRepository = employeeRepository;
         this.groupRepository = groupRepository;
+        this.curriculumRepository = curriculumRepository;
+    }
+
+    @GetMapping("curricula")
+    public ResponseEntity<List<Curriculum>> getCurriculaForCurrentStaff(Principal principal) {
+        String email = principal.getName();
+        Optional<Employee> employeeOpt = employeeRepository.findByEmail(email);
+
+        if (employeeOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Employee employee = employeeOpt.get();
+        Department department = employee.getDepartment();
+
+        if (department == null) {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+
+        List<Curriculum> curricula = curriculumRepository.findByDepartmentId(department.getIdDepartment());
+        return ResponseEntity.ok(curricula);
+    }
+
+    @GetMapping("groups")
+    public ResponseEntity<List<StudentGroup>> getGroupsForCurrentStaff(
+            @RequestParam Integer curriculumId,
+            Principal principal) {
+
+        String email = principal.getName();
+        Optional<Employee> employeeOpt = employeeRepository.findByEmail(email);
+
+        if (employeeOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Employee employee = employeeOpt.get();
+        Department department = employee.getDepartment();
+
+        if (department == null) {
+            return ResponseEntity.ok(Collections.emptyList());
+        }
+
+        List<StudentGroup> groups = groupRepository.findByCurriculumIdAndDepartmentId(
+                curriculumId, department.getIdDepartment());
+
+        return ResponseEntity.ok(groups);
     }
 
     @GetMapping

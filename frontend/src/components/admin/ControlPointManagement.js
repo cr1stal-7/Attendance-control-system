@@ -297,7 +297,9 @@ const ControlPointManagement = () => {
                                     Название *
                                 </label>
                                 <input
+                                    type="text"
                                     name="name"
+                                    maxLength={50}
                                     value={controlPointForm.name}
                                     onChange={handleFormChange}
                                     required

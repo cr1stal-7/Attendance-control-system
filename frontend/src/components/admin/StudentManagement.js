@@ -162,7 +162,11 @@ const StudentManagement = () => {
         if (!studentForm.surname) errors.surname = "Фамилия обязательна";
         if (!studentForm.name) errors.name = "Имя обязательно";
         if (!studentForm.birthDate) errors.birthDate = "Дата рождения обязательна";
-        if (!studentForm.email) errors.email = "Email обязателен";
+        if (!studentForm.email) {
+            errors.email = 'Email обязателен';
+        } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(studentForm.email)) {
+            errors.email = 'Пожалуйста, введите корректный email';
+        }
         if (!studentForm.studentCardId) errors.studentCardId = "Номер студенческого билета обязателен";
         if (!studentForm.idGroup) errors.group = "Группа обязательна";
 
@@ -403,7 +407,9 @@ const StudentManagement = () => {
                                         Фамилия *
                                     </label>
                                     <input
+                                        type="text"
                                         name="surname"
+                                        maxLength={50}
                                         value={studentForm.surname}
                                         onChange={handleFormChange}
                                         required
@@ -435,7 +441,9 @@ const StudentManagement = () => {
                                         Имя *
                                     </label>
                                     <input
+                                        type="text"
                                         name="name"
+                                        maxLength={50}
                                         value={studentForm.name}
                                         onChange={handleFormChange}
                                         required
@@ -469,7 +477,9 @@ const StudentManagement = () => {
                                         Отчество
                                     </label>
                                     <input
+                                        type="text"
                                         name="secondName"
+                                        maxLength={50}
                                         value={studentForm.secondName}
                                         onChange={handleFormChange}
                                         style={{
@@ -531,8 +541,15 @@ const StudentManagement = () => {
                                 <input
                                     type="number"
                                     name="studentCardId"
+                                    min='1'
+                                    max='999999999999'
                                     value={studentForm.studentCardId}
                                     onChange={handleFormChange}
+                                    onKeyDown={(e) => {
+                                        if (e.key === '-' || e.key === 'e' || e.key === 'E') {
+                                            e.preventDefault();
+                                        }
+                                    }}
                                     required
                                     style={{
                                         width: '100%',
@@ -564,6 +581,7 @@ const StudentManagement = () => {
                                 <input
                                     type="email"
                                     name="email"
+                                    maxLength={100}
                                     value={studentForm.email}
                                     onChange={handleFormChange}
                                     required
@@ -597,6 +615,7 @@ const StudentManagement = () => {
                                 <input
                                     type="password"
                                     name="password"
+                                    maxLength={100}
                                     value={studentForm.password}
                                     onChange={handleFormChange}
                                     required={!isEditMode}

@@ -347,7 +347,9 @@ const DepartmentManagement = () => {
                                     Название *
                                 </label>
                                 <input
+                                    type="text"
                                     name="name"
+                                    maxLength={100}
                                     value={departmentForm.name}
                                     onChange={handleFormChange}
                                     required
@@ -379,7 +381,9 @@ const DepartmentManagement = () => {
                                     Короткое название *
                                 </label>
                                 <input
+                                    type="text"
                                     name="shortName"
+                                    maxLength={20}
                                     value={departmentForm.shortName}
                                     onChange={handleFormChange}
                                     required

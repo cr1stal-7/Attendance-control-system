@@ -179,12 +179,6 @@ const CurriculumSubjectsManagement = () => {
         }
     };
 
-    const getCurriculumName = () => {
-        if (!selectedCurriculum) return "";
-        const curriculum = curricula.find(c => c.idCurriculum == selectedCurriculum);
-        return curriculum ? `${curriculum.name} (${curriculum.academicYear})` : "";
-    };
-
     return (
         <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '20px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -436,6 +430,11 @@ const CurriculumSubjectsManagement = () => {
                                     name="hours"
                                     value={subjectForm.hours}
                                     onChange={handleFormChange}
+                                    onKeyDown={(e) => {
+                                        if (e.key === '-' || e.key === 'e' || e.key === 'E') {
+                                            e.preventDefault();
+                                        }
+                                    }}
                                     required
                                     style={{
                                         width: '100%',

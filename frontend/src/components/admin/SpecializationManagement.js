@@ -254,6 +254,7 @@ const SpecializationManagement = () => {
                                 <input
                                     type="text"
                                     name="name"
+                                    maxLength={50}
                                     value={specializationForm.name}
                                     onChange={handleFormChange}
                                     required
@@ -287,6 +288,7 @@ const SpecializationManagement = () => {
                                 <input
                                     type="text"
                                     name="code"
+                                    maxLength={20}
                                     value={specializationForm.code}
                                     onChange={handleFormChange}
                                     required

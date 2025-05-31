@@ -246,6 +246,7 @@ const EducationFormManagement = () => {
                                 <input
                                     type="text"
                                     name="name"
+                                    maxLength={50}
                                     value={educationForm.name}
                                     onChange={handleFormChange}
                                     required

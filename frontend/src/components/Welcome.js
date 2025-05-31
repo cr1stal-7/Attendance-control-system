@@ -11,23 +11,17 @@ const Welcome = () => {
                 const response = await axios.get('http://localhost:8080/api/auth/user', {
                     withCredentials: true
                 });
-                
-                // Перенаправляем по роли
-                if (response.data.role) {
-                    switch(response.data.role) {
-                        case 'Администратор':
-                            navigate('/admin/dashboard', { state: response.data });
-                            break;
-                        case 'Преподаватель':
-                            navigate('/teacher/dashboard', { state: response.data });
-                            break;
-                        case 'Сотрудник':
-                            navigate('/staff/reports', { state: response.data });
-                            break;
-                    }
-                } else {
-                    // Для студентов
+
+                if (response.data.role === 'Администратор') {
+                    navigate('/admin/dashboard', { state: response.data });
+                } else if (response.data.role === 'Преподаватель') {
+                    navigate('/teacher/dashboard', { state: response.data });
+                } else if (response.data.role === 'Сотрудник') {
+                    navigate('/staff/reports', { state: response.data });
+                } else if (response.data.type === 'student') {
                     navigate('/student/dashboard', { state: response.data });
+                } else {
+                    navigate('/login');
                 }
             } catch (err) {
                 navigate('/login');
@@ -36,7 +30,14 @@ const Welcome = () => {
         fetchUser();
     }, [navigate]);
 
-    return <div style={{ padding: '20px' }}>Перенаправление...</div>;
+    return <div style={{
+        padding: '20px',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        fontSize: '1.2rem'
+    }}>Перенаправление...</div>;
 };
 
 export default Welcome;

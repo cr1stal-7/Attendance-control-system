@@ -257,6 +257,7 @@ const SemesterManagement = () => {
                                 <input
                                     type="text"
                                     name="academicYear"
+                                    maxLength={10}
                                     value={semesterForm.academicYear}
                                     onChange={handleFormChange}
                                     required
@@ -290,6 +291,7 @@ const SemesterManagement = () => {
                                 <input
                                     type="text"
                                     name="type"
+                                    maxLength={20}
                                     value={semesterForm.type}
                                     onChange={handleFormChange}
                                     required

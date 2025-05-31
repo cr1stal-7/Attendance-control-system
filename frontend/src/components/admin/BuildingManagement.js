@@ -251,6 +251,7 @@ const BuildingManagement = () => {
                                 <input
                                     type="text"
                                     name="address"
+                                    maxLength={100}
                                     value={buildingForm.address}
                                     onChange={handleFormChange}
                                     required
@@ -284,6 +285,7 @@ const BuildingManagement = () => {
                                 <input
                                     type="text"
                                     name="name"
+                                    maxLength={30}
                                     value={buildingForm.name}
                                     onChange={handleFormChange}
                                     required

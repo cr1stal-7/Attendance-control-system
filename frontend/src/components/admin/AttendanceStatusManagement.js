@@ -245,6 +245,7 @@ const AttendanceStatusManagement = () => {
                                 <input
                                     type="text"
                                     name="name"
+                                    maxLength={50}
                                     value={attendanceStatusForm.name}
                                     onChange={handleFormChange}
                                     required

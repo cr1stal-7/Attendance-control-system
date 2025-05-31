@@ -245,6 +245,7 @@ const SubjectManagement = () => {
                                 <input
                                     type="text"
                                     name="name"
+                                    maxLength={50}
                                     value={subjectForm.name}
                                     onChange={handleFormChange}
                                     required

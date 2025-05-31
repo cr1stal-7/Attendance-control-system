@@ -314,6 +314,11 @@ const ClassroomManagement = () => {
                                     name="number"
                                     value={classroomForm.number}
                                     onChange={handleFormChange}
+                                    onKeyDown={(e) => {
+                                        if (e.key === '-' || e.key === 'e' || e.key === 'E') {
+                                            e.preventDefault();
+                                        }
+                                    }}
                                     required
                                     style={{
                                         width: '100%',
@@ -349,6 +354,11 @@ const ClassroomManagement = () => {
                                     name="floor"
                                     value={classroomForm.floor}
                                     onChange={handleFormChange}
+                                    onKeyDown={(e) => {
+                                        if (e.key === '-' || e.key === 'e' || e.key === 'E') {
+                                            e.preventDefault();
+                                        }
+                                    }}
                                     required
                                     style={{
                                         width: '100%',

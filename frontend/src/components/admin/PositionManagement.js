@@ -245,6 +245,7 @@ const PositionManagement = () => {
                                 <input
                                     type="text"
                                     name="name"
+                                    maxLength={50}
                                     value={positionForm.name}
                                     onChange={handleFormChange}
                                     required

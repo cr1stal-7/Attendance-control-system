@@ -34,8 +34,10 @@ public class Curriculum {
     private Specialization specialization;
 
     @OneToMany(mappedBy = "curriculum")
+    @JsonIgnore
     private List<StudentGroup> studentGroups;
 
     @OneToMany(mappedBy = "curriculum", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
     private List<CurriculumSubject> curriculumSubjects;
 }

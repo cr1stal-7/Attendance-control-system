@@ -60,7 +60,7 @@ const StaffAcademicClassesManagement = () => {
     const fetchCurricula = async () => {
         try {
             const response = await axios.get(
-                'http://localhost:8080/api/admin/education/curriculums',
+                'http://localhost:8080/api/staff/classes/curricula',
                 { withCredentials: true }
             );
             setCurricula(response.data);
@@ -170,7 +170,7 @@ const StaffAcademicClassesManagement = () => {
             }
 
             const response = await axios.get(
-                `http://localhost:8080/api/admin/education/groups?curriculumId=${selectedCurriculum}`,
+                `http://localhost:8080/api/staff/classes/groups?curriculumId=${selectedCurriculum}`,
                 { withCredentials: true }
             );
             setGroups(response.data);
@@ -338,7 +338,7 @@ const StaffAcademicClassesManagement = () => {
 
     return (
         <div style={{ maxWidth: '950px', margin: '0 auto' }}>
-                <h1 style={{
+            <h1 style={{
                 color: '#2c3e50',
                 marginBottom: '10px',
                 fontSize: '1.8rem'

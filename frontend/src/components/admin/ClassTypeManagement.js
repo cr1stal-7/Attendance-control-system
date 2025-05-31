@@ -245,6 +245,7 @@ const ClassTypeManagement = () => {
                                 <input
                                     type="text"
                                     name="name"
+                                    maxLength={50}
                                     value={classTypeForm.name}
                                     onChange={handleFormChange}
                                     required
