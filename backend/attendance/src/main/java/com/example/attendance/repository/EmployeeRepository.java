@@ -102,4 +102,6 @@ public interface EmployeeRepository extends JpaRepository<Employee, Integer> {
     List<Employee> findByDepartment_IdDepartment(Integer departmentId);
 
     List<Employee> findByDepartmentInAndRole_NameNot(List<Department> departments, String admin);
+
+    boolean existsByEmail(String email);
 }

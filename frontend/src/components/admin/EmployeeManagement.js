@@ -44,6 +44,14 @@ const EmployeeManagement = () => {
     }, [selectedDepartment]);
 
     useEffect(() => {
+        if (employeeForm.idDepartment) {
+            fetchSubdepartmentsByDepartment(employeeForm.idDepartment);
+        } else {
+            setSubdepartments([]);
+        }
+    }, [employeeForm.idDepartment]);
+
+    useEffect(() => {
         fetchEmployees(selectedSubdepartment || selectedDepartment);
     }, [selectedDepartment, selectedSubdepartment]);
 
@@ -202,6 +210,8 @@ const EmployeeManagement = () => {
 
         if (!isEditMode && !employeeForm.password) {
             errors.password = "Пароль обязателен";
+        } else if (employeeForm.password && employeeForm.password.length < 6) {
+            errors.password = "Пароль должен содержать минимум 6 символов";
         }
 
         if (Object.keys(errors).length > 0) {
@@ -238,7 +248,11 @@ const EmployeeManagement = () => {
             await fetchEmployees(selectedSubdepartment || selectedDepartment);
         } catch (err) {
             console.error('Ошибка сохранения сотрудника:', err);
-            setError(`Не удалось сохранить данные: ${err.response?.data?.message || err.message}`);
+            if (err.response && err.response.status === 409) {
+                setError(err.response.data?.message ||'Email уже используется другим пользователем');
+            } else {
+                setError(`Не удалось сохранить данные: ${err.response?.data?.message || err.message}`);
+            }
         } finally {
             setProcessing(false);
         }
@@ -430,6 +444,19 @@ const EmployeeManagement = () => {
                             {isEditMode ? 'Редактирование сотрудника' : 'Добавление нового сотрудника'}
                         </h2>
 
+                        {error && (
+                            <div style={{
+                                color: '#e74c3c',
+                                marginBottom: '15px',
+                                padding: '10px',
+                                backgroundColor: '#fde8e8',
+                                borderRadius: '4px',
+                                border: '1px solid #f5c6cb'
+                            }}>
+                                {error}
+                            </div>
+                        )}
+
                         <form>
                             <div style={{ display: 'flex', gap: '15px', marginBottom: '15px' }}>
                                 <div style={{ flex: 1 }}>
@@ -606,6 +633,7 @@ const EmployeeManagement = () => {
                                 <input
                                     type="password"
                                     name="password"
+                                    minLength={6}
                                     maxLength={100}
                                     value={employeeForm.password}
                                     onChange={handleFormChange}
@@ -650,7 +678,7 @@ const EmployeeManagement = () => {
                                         handleFormChange(e);
                                         setEmployeeForm(prev => ({
                                             ...prev,
-                                            idDepartment: e.target.value
+                                            idSubdepartment: ''
                                         }));
                                     }}
                                     required

@@ -81,7 +81,7 @@ const BuildingManagement = () => {
         setValidationErrors({});
 
         const errors = {};
-        if (!buildingForm.address) errors.code = "Адрес обязателен";
+        if (!buildingForm.address) errors.address = "Адрес обязателен";
         if (!buildingForm.name) errors.name = "Название обязательно";
 
         if (Object.keys(errors).length > 0) {

@@ -31,7 +31,7 @@ public class TeacherScheduleController {
         }
 
         Optional<Employee> employee = employeeRepository.findByEmail(principal.getName());
-        if (employee.isEmpty() || !employee.get().getRole().getName().equals("ROLE_TEACHER")) {
+        if (employee.isEmpty() || !employee.get().getRole().getName().equals("Преподаватель")) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
 
@@ -50,7 +50,7 @@ public class TeacherScheduleController {
 
     private Map<String, Object> mapClassToDto(AcademicClass c) {
         Map<String, Object> classInfo = new HashMap<>();
-        classInfo.put("datetime", c.getDatetime());
+        classInfo.put("datetime", c.getDatetime().toString());
         classInfo.put("group", getGroupInfo(c));
         classInfo.put("subjectName", c.getCurriculumSubject() != null && c.getCurriculumSubject().getSubject() != null
                 ? c.getCurriculumSubject().getSubject().getName() : "Не указано");

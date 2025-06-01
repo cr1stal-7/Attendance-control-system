@@ -46,7 +46,10 @@ const TeacherStatistics = () => {
                 'http://localhost:8080/api/teacher/semesters',
                 { withCredentials: true }
             );
-            setSemesters(response.data);
+            const sortedSemesters = response.data.sort((a, b) =>
+                b.academicYear.localeCompare(a.academicYear)
+            );
+            setSemesters(sortedSemesters);
         } catch (err) {
             console.error('Ошибка при получении списка семестров:', err);
         } finally {
@@ -65,7 +68,6 @@ const TeacherStatistics = () => {
                 }
             );
             setSubjects(response.data);
-            setSelectedSubject('');
         } catch (err) {
             console.error('Ошибка при получении списка дисциплин:', err);
         } finally {
@@ -83,8 +85,10 @@ const TeacherStatistics = () => {
                     withCredentials: true
                 }
             );
-            setGroups(response.data);
-            setSelectedGroup('');
+            const sortedGroups = response.data.sort((a, b) =>
+                a.name.localeCompare(b.name)
+            );
+            setGroups(sortedGroups);
         } catch (err) {
             console.error('Ошибка при получении списка групп:', err);
         } finally {
@@ -211,11 +215,15 @@ const TeacherStatistics = () => {
             {loading ? (
                 <p>Загрузка данных...</p>
             ) : selectedGroup ? (
-                <AttendanceTable
-                    students={statistics.students.length > 0
-                        ? sortStudentsAlphabetically(statistics.students)
-                        : []}
-                />
+                statistics?.students?.length > 0 ? (
+                    <AttendanceTable
+                        students={sortStudentsAlphabetically(statistics.students)}
+                    />
+                ) : (
+                    <p style={{ color: '#666', textAlign: 'left', marginTop: '20px' }}>
+                        Нет данных о студентах для выбранной группы
+                    </p>
+                )
             ) : null}
         </div>
     );
@@ -229,9 +237,14 @@ const selectStyle = {
     fontSize: '1rem'
 };
 
-const AttendanceTable = ({ students }) => {
-    if (!students || students.length === 0) return <p>Нет данных о студентах</p>;
-
+const AttendanceTable = ({ students = [] }) => {
+    if (!students || students.length === 0) {
+        return (
+            <p style={{ color: '#666', textAlign: 'left', marginTop: '20px' }}>
+                Нет данных о посещаемости
+            </p>
+        );
+    }
     const dates = students[0]?.attendanceByDate?.map(item => item.date) || [];
 
     return (

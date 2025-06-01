@@ -4,12 +4,14 @@ import com.example.attendance.dto.StudentManagementDTO;
 import com.example.attendance.model.*;
 import com.example.attendance.repository.*;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -70,7 +72,8 @@ public class StaffStudentController {
     }
 
     @PostMapping
-    public ResponseEntity<StudentManagementDTO> createStudent(@RequestBody StudentManagementDTO studentDTO, Principal principal) {
+    @ResponseBody
+    public ResponseEntity<?> createStudent(@RequestBody StudentManagementDTO studentDTO, Principal principal) {
         if (principal == null) {
             return ResponseEntity.status(401).build();
         }
@@ -93,11 +96,18 @@ public class StaffStudentController {
                 studentDTO.getPassword() == null) {
             return ResponseEntity.badRequest().build();
         }
-        if (studentRepository.existsByEmail(studentDTO.getEmail())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+
+        if (studentRepository.existsByEmail(studentDTO.getEmail()) ||
+                employeeRepository.existsByEmail(studentDTO.getEmail())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Map.of("message","Email уже используется"));
         }
+
         if (studentRepository.existsByStudentCardId(studentDTO.getStudentCardId())) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Map.of("message","Номер студенческого билета уже используется"));
         }
 
         Student student = new Student();
@@ -115,7 +125,7 @@ public class StaffStudentController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<StudentManagementDTO> updateStudent(
+    public ResponseEntity<?> updateStudent(
             @PathVariable Integer id,
             @RequestBody StudentManagementDTO studentDTO,
             Principal principal) {
@@ -139,6 +149,24 @@ public class StaffStudentController {
         }
 
         Student student = studentOpt.get();
+
+        if (studentDTO.getEmail() != null && !studentDTO.getEmail().equals(student.getEmail())) {
+            if (studentRepository.existsByEmail(studentDTO.getEmail()) ||
+                    employeeRepository.existsByEmail(studentDTO.getEmail())) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(Map.of("message","Email уже используется"));
+            }
+        }
+
+        if (studentDTO.getStudentCardId() != null &&
+                !studentDTO.getStudentCardId().equals(student.getStudentCardId())) {
+            if (studentRepository.existsByStudentCardId(studentDTO.getStudentCardId())) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(Map.of("message","Номер студенческого билета уже используется"));
+            }
+        }
 
         if (studentDTO.getIdGroup() != null) {
             Optional<StudentGroup> newGroupOpt = groupRepository.findById(studentDTO.getIdGroup());

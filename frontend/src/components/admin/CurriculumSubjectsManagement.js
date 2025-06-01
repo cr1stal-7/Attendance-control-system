@@ -40,7 +40,13 @@ const CurriculumSubjectsManagement = () => {
                 'http://localhost:8080/api/admin/education/curriculums',
                 { withCredentials: true }
             );
-            setCurricula(response.data);
+            const sortedCurricula = response.data.sort((a, b) => {
+                if (a.academicYear !== b.academicYear) {
+                    return b.academicYear.localeCompare(a.academicYear);
+                }
+                return a.name.localeCompare(b.name);
+            });
+            setCurricula(sortedCurricula);
         } catch (err) {
             console.error('Ошибка загрузки учебных планов:', err);
             setError('Не удалось загрузить список учебных планов');

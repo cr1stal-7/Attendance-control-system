@@ -3,11 +3,14 @@ package com.example.attendance.controller;
 import com.example.attendance.dto.EmployeeManagementDTO;
 import com.example.attendance.model.*;
 import com.example.attendance.repository.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -19,17 +22,20 @@ public class EmployeeManagementController {
     private final DepartmentRepository departmentRepository;
     private final PositionRepository positionRepository;
     private final RoleRepository roleRepository;
+    private final StudentRepository studentRepository;
     private final PasswordEncoder passwordEncoder;
 
     public EmployeeManagementController(EmployeeRepository employeeRepository,
                                         DepartmentRepository departmentRepository,
                                         PositionRepository positionRepository,
                                         RoleRepository roleRepository,
+                                        StudentRepository studentRepository,
                                         PasswordEncoder passwordEncoder) {
         this.employeeRepository = employeeRepository;
         this.departmentRepository = departmentRepository;
         this.positionRepository = positionRepository;
         this.roleRepository = roleRepository;
+        this.studentRepository = studentRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -77,13 +83,20 @@ public class EmployeeManagementController {
     }
 
     @PostMapping
-    public ResponseEntity<EmployeeManagementDTO> createEmployee(
+    public ResponseEntity<?> createEmployee(
             @RequestBody EmployeeManagementDTO employeeDTO) {
         if (employeeDTO.getSurname() == null || employeeDTO.getName() == null ||
                 employeeDTO.getBirthDate() == null || employeeDTO.getEmail() == null ||
                 employeeDTO.getPassword() == null || employeeDTO.getIdDepartment() == null ||
                 employeeDTO.getIdPosition() == null || employeeDTO.getIdRole() == null) {
             return ResponseEntity.badRequest().build();
+        }
+
+        if (employeeRepository.existsByEmail(employeeDTO.getEmail()) ||
+                studentRepository.existsByEmail(employeeDTO.getEmail())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Map.of("message","Email уже используется"));
         }
 
         Employee employee = new Employee();
@@ -106,7 +119,7 @@ public class EmployeeManagementController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EmployeeManagementDTO> updateEmployee(
+    public ResponseEntity<?> updateEmployee(
             @PathVariable Integer id,
             @RequestBody EmployeeManagementDTO employeeDTO) {
 
@@ -116,6 +129,16 @@ public class EmployeeManagementController {
         }
 
         Employee employee = employeeOpt.get();
+
+        if (employeeDTO.getEmail() != null && !employeeDTO.getEmail().equals(employee.getEmail())) {
+            if (employeeRepository.existsByEmail(employeeDTO.getEmail()) ||
+                    studentRepository.existsByEmail(employeeDTO.getEmail())) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(Map.of("message","Email уже используется"));
+            }
+        }
+
         if (employeeDTO.getSurname() != null) {
             employee.setSurname(employeeDTO.getSurname());
         }

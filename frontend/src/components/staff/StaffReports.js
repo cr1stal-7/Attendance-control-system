@@ -56,9 +56,12 @@ const StaffReports = () => {
                 'http://localhost:8080/api/staff/semesters',
                 { withCredentials: true }
             );
-            setSemesters(response.data);
-            if (response.data.length > 0) {
-                setSelectedSemester(response.data[0].idSemester);
+            const sortedSemesters = response.data.sort((a, b) =>
+                b.academicYear.localeCompare(a.academicYear)
+            );
+            setSemesters(sortedSemesters);
+            if (sortedSemesters.length > 0) {
+                setSelectedSemester(sortedSemesters[0].idSemester);
             }
         } catch (err) {
             console.error('Ошибка при получении списка семестров:', err);

@@ -36,7 +36,10 @@ const StudentAttendance = () => {
                 'http://localhost:8080/api/student/attendance/semesters',
                 { withCredentials: true }
             );
-            setSemesters(response.data);
+            const sortedSemesters = response.data.sort((a, b) =>
+                b.academicYear.localeCompare(a.academicYear)
+            );
+            setSemesters(sortedSemesters);
             if (response.data.length > 0) {
                 setSelectedSemester(response.data[0].idSemester);
             }

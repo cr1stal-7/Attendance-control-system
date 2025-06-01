@@ -98,6 +98,7 @@ const TeacherSettings = () => {
             {showPasswordModal && (
                 <ChangePasswordModal
                     onClose={() => setShowPasswordModal(false)}
+                    userType="teacher"
                 />
             )}
         </>

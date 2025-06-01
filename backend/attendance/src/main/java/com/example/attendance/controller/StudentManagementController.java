@@ -3,11 +3,14 @@ package com.example.attendance.controller;
 import com.example.attendance.dto.StudentManagementDTO;
 import com.example.attendance.model.*;
 import com.example.attendance.repository.*;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -18,15 +21,18 @@ public class StudentManagementController {
     private final StudentRepository studentRepository;
     private final GroupRepository groupRepository;
     private final DepartmentRepository departmentRepository;
+    private final EmployeeRepository employeeRepository;
     private final PasswordEncoder passwordEncoder;
 
     public StudentManagementController(StudentRepository studentRepository,
                                        GroupRepository groupRepository,
                                        DepartmentRepository departmentRepository,
+                                       EmployeeRepository employeeRepository,
                                        PasswordEncoder passwordEncoder) {
         this.studentRepository = studentRepository;
         this.groupRepository = groupRepository;
         this.departmentRepository = departmentRepository;
+        this.employeeRepository = employeeRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -65,12 +71,25 @@ public class StudentManagementController {
     }
 
     @PostMapping
-    public ResponseEntity<StudentManagementDTO> createStudent(@RequestBody StudentManagementDTO studentDTO) {
+    public ResponseEntity<?> createStudent(@RequestBody StudentManagementDTO studentDTO) {
         if (studentDTO.getSurname() == null || studentDTO.getName() == null ||
                 studentDTO.getBirthDate() == null || studentDTO.getEmail() == null ||
                 studentDTO.getStudentCardId() == null || studentDTO.getIdGroup() == null ||
                 studentDTO.getPassword() == null) {
             return ResponseEntity.badRequest().build();
+        }
+
+        if (studentRepository.existsByEmail(studentDTO.getEmail()) ||
+                employeeRepository.existsByEmail(studentDTO.getEmail())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Map.of("message","Email уже используется"));
+        }
+
+        if (studentRepository.existsByStudentCardId(studentDTO.getStudentCardId())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Map.of("message","Номер студенческого билета уже используется"));
         }
 
         Student student = new Student();
@@ -89,7 +108,7 @@ public class StudentManagementController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<StudentManagementDTO> updateStudent(
+    public ResponseEntity<?> updateStudent(
             @PathVariable Integer id,
             @RequestBody StudentManagementDTO studentDTO) {
 
@@ -99,6 +118,25 @@ public class StudentManagementController {
         }
 
         Student student = studentOpt.get();
+
+        if (studentDTO.getEmail() != null && !studentDTO.getEmail().equals(student.getEmail())) {
+            if (studentRepository.existsByEmail(studentDTO.getEmail()) ||
+                    employeeRepository.existsByEmail(studentDTO.getEmail())) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(Map.of("message","Email уже используется"));
+            }
+        }
+
+        if (studentDTO.getStudentCardId() != null &&
+                !studentDTO.getStudentCardId().equals(student.getStudentCardId())) {
+            if (studentRepository.existsByStudentCardId(studentDTO.getStudentCardId())) {
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(Map.of("message","Номер студенческого билета уже используется"));
+            }
+        }
+
         if (studentDTO.getSurname() != null) {
             student.setSurname(studentDTO.getSurname());
         }

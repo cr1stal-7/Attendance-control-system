@@ -89,7 +89,10 @@ const StudentManagement = () => {
                 `http://localhost:8080/api/admin/accounts/students/groups?departmentId=${departmentId}`,
                 { withCredentials: true }
             );
-            setGroups(response.data);
+            const sortedGroups = response.data.sort((a, b) =>
+                a.name.localeCompare(b.name)
+            );
+            setGroups(sortedGroups);
         } catch (err) {
             console.error('Ошибка загрузки групп:', err);
             setError('Не удалось загрузить список групп');
@@ -172,6 +175,8 @@ const StudentManagement = () => {
 
         if (!isEditMode && !studentForm.password) {
             errors.password = "Пароль обязателен";
+        } else if (studentForm.password && studentForm.password.length < 6) {
+            errors.password = "Пароль должен содержать минимум 6 символов";
         }
 
         if (Object.keys(errors).length > 0) {
@@ -205,7 +210,11 @@ const StudentManagement = () => {
             await fetchStudents(selectedDepartment, selectedGroup);
         } catch (err) {
             console.error('Ошибка сохранения студента:', err);
-            setError(`Не удалось сохранить данные: ${err.response?.data?.message || err.message}`);
+            if (err.response && err.response.status === 409) {
+                setError(err.response.data?.message || 'Данные уже используются другим пользователем');
+            } else {
+                setError(`Не удалось сохранить данные: ${err.response?.data?.message || err.message}`);
+            }
         } finally {
             setProcessing(false);
         }
@@ -393,6 +402,19 @@ const StudentManagement = () => {
                         }}>
                             {isEditMode ? 'Редактирование студента' : 'Добавление нового студента'}
                         </h2>
+
+                        {error && (
+                            <div style={{
+                                color: '#e74c3c',
+                                marginBottom: '15px',
+                                padding: '10px',
+                                backgroundColor: '#fde8e8',
+                                borderRadius: '4px',
+                                border: '1px solid #f5c6cb'
+                            }}>
+                                {error}
+                            </div>
+                        )}
 
                         <form>
                             <div style={{ display: 'flex', gap: '15px', marginBottom: '15px' }}>
@@ -615,6 +637,7 @@ const StudentManagement = () => {
                                 <input
                                     type="password"
                                     name="password"
+                                    minLength={6}
                                     maxLength={100}
                                     value={studentForm.password}
                                     onChange={handleFormChange}

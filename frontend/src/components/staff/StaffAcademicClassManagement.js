@@ -63,7 +63,13 @@ const StaffAcademicClassesManagement = () => {
                 'http://localhost:8080/api/staff/classes/curricula',
                 { withCredentials: true }
             );
-            setCurricula(response.data);
+            const sortedCurricula = response.data.sort((a, b) => {
+                if (a.academicYear !== b.academicYear) {
+                    return b.academicYear.localeCompare(a.academicYear);
+                }
+                return a.name.localeCompare(b.name);
+            });
+            setCurricula(sortedCurricula);
         } catch (err) {
             console.error('Ошибка загрузки учебных планов:', err);
             setError('Не удалось загрузить список учебных планов');
@@ -76,7 +82,10 @@ const StaffAcademicClassesManagement = () => {
                 `http://localhost:8080/api/admin/education/curriculum-subjects/semesters?curriculumId=${selectedCurriculum}`,
                 { withCredentials: true }
             );
-            setSemesters(response.data);
+            const sortedSemesters = response.data.sort((a, b) =>
+                b.academicYear.localeCompare(a.academicYear)
+            );
+            setSemesters(sortedSemesters);
         } catch (err) {
             console.error('Ошибка загрузки семестров:', err);
             setError('Не удалось загрузить список семестров');
@@ -128,7 +137,11 @@ const StaffAcademicClassesManagement = () => {
             );
             const teachers = response.data.filter(employee =>
                 employee.idRole === 3
-            );
+            ).sort((a, b) => {
+                const nameA = `${a.surname} ${a.name}`.toLowerCase();
+                const nameB = `${b.surname} ${b.name}`.toLowerCase();
+                return nameA.localeCompare(nameB);
+            });
             setEmployees(teachers);
         } catch (err) {
             console.error('Ошибка загрузки сотрудников:', err);
@@ -142,7 +155,12 @@ const StaffAcademicClassesManagement = () => {
                 'http://localhost:8080/api/admin/structure/classrooms',
                 { withCredentials: true }
             );
-            setClassrooms(response.data);
+            const sortedClassrooms = response.data.sort((a, b) => {
+                const numA = parseInt(a.number, 10);
+                const numB = parseInt(b.number, 10);
+                return numA - numB;
+            });
+            setClassrooms(sortedClassrooms);
         } catch (err) {
             console.error('Ошибка загрузки аудиторий:', err);
             setError('Не удалось загрузить список аудиторий');
@@ -168,12 +186,14 @@ const StaffAcademicClassesManagement = () => {
                 setGroups([]);
                 return;
             }
-
             const response = await axios.get(
                 `http://localhost:8080/api/staff/classes/groups?curriculumId=${selectedCurriculum}`,
                 { withCredentials: true }
             );
-            setGroups(response.data);
+            const sortedGroups = response.data.sort((a, b) =>
+                a.name.localeCompare(b.name)
+            );
+            setGroups(sortedGroups);
         } catch (err) {
             console.error('Ошибка загрузки групп:', err);
             setError('Не удалось загрузить список групп');
@@ -294,7 +314,7 @@ const StaffAcademicClassesManagement = () => {
         try {
             const config = { withCredentials: true, headers: { 'Content-Type': 'application/json' } };
             const data = {
-                datetime: classForm.datetime,
+                datetime: classForm.datetime+ ":00",
                 idCurriculumSubject: classForm.idCurriculumSubject,
                 idClassType: classForm.idClassType,
                 idClassroom: classForm.idClassroom,

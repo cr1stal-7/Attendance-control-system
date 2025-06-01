@@ -25,30 +25,50 @@ const StaffStudentsManagement = ({ facultyName }) => {
         password: ''
     });
 
+    const fetchStudents = async () => {
+        try {
+            const response = await axios.get(
+                'http://localhost:8080/api/staff/students',
+                { withCredentials: true }
+            );
+            const sortedStudents = sortStudentsByName(response.data);
+            setStudents(sortedStudents);
+            setFilteredStudents(sortedStudents);
+            return sortedStudents;
+        } catch (err) {
+            console.error('Ошибка загрузки студентов:', err);
+            setError('Не удалось загрузить список студентов');
+            throw err;
+        }
+    };
+
+    const fetchGroups = async () => {
+        try {
+            const response = await axios.get(
+                'http://localhost:8080/api/staff/students/groups',
+                { withCredentials: true }
+            );
+            const sortedGroups = sortGroupsByName(response.data);
+            setGroups(sortedGroups);
+            if (sortedGroups.length > 0) {
+                setStudentForm(prev => ({
+                    ...prev,
+                    idGroup: sortedGroups[0].idGroup
+                }));
+            }
+            return sortedGroups;
+        } catch (err) {
+            console.error('Ошибка загрузки групп:', err);
+            setError('Не удалось загрузить список групп');
+            throw err;
+        }
+    };
+
     useEffect(() => {
         const fetchInitialData = async () => {
             setLoading(true);
             try {
-                const [groupsRes, studentsRes] = await Promise.all([
-                    axios.get('http://localhost:8080/api/staff/students/groups', { withCredentials: true }),
-                    axios.get('http://localhost:8080/api/staff/students', { withCredentials: true })
-                ]);
-
-                setGroups(groupsRes.data);
-                const sortedStudents = [...studentsRes.data].sort((a, b) => {
-                    const nameA = `${a.surname} ${a.name}`.toLowerCase();
-                    const nameB = `${b.surname} ${b.name}`.toLowerCase();
-                    return nameA.localeCompare(nameB);
-                });
-                setStudents(sortedStudents);
-                setFilteredStudents(sortedStudents);
-
-                if (groupsRes.data.length > 0) {
-                    setStudentForm(prev => ({
-                        ...prev,
-                        idGroup: groupsRes.data[0].idGroup
-                    }));
-                }
+                await Promise.all([fetchGroups(), fetchStudents()]);
             } catch (err) {
                 console.error('Ошибка загрузки данных:', err);
                 setError('Не удалось загрузить данные. Пожалуйста, попробуйте позже.');
@@ -117,18 +137,7 @@ const StaffStudentsManagement = ({ facultyName }) => {
                     `http://localhost:8080/api/staff/students/${id}`,
                     { withCredentials: true }
                 );
-
-                const response = await axios.get(
-                    'http://localhost:8080/api/staff/students',
-                    { withCredentials: true }
-                );
-                const sortedStudents = [...response.data].sort((a, b) => {
-                    const nameA = `${a.surname} ${a.name}`.toLowerCase();
-                    const nameB = `${b.surname} ${b.name}`.toLowerCase();
-                    return nameA.localeCompare(nameB);
-                });
-                setStudents(sortedStudents);
-                setFilteredStudents(sortedStudents);
+                await fetchStudents();
             } catch (err) {
                 console.error('Ошибка удаления студента:', err);
                 setError(`Не удалось удалить студента: ${err.response?.data?.message || err.message}`);
@@ -157,6 +166,8 @@ const StaffStudentsManagement = ({ facultyName }) => {
 
         if (!isEditMode && !studentForm.password) {
             errors.password = "Пароль обязателен";
+        } else if (studentForm.password && studentForm.password.length < 6) {
+            errors.password = "Пароль должен содержать минимум 6 символов";
         }
 
         if (Object.keys(errors).length > 0) {
@@ -187,24 +198,29 @@ const StaffStudentsManagement = ({ facultyName }) => {
                 );
 
             setShowModal(false);
-
-            const studentsRes = await axios.get(
-                'http://localhost:8080/api/staff/students',
-                { withCredentials: true }
-            );
-            const sortedStudents = [...studentsRes.data].sort((a, b) => {
-                const nameA = `${a.surname} ${a.name}`.toLowerCase();
-                const nameB = `${b.surname} ${b.name}`.toLowerCase();
-                return nameA.localeCompare(nameB);
-            });
-            setStudents(sortedStudents);
-            setFilteredStudents(sortedStudents);
+            await fetchStudents();
         } catch (err) {
             console.error('Ошибка сохранения студента:', err);
-            setError(`Не удалось сохранить данные: ${err.response?.data?.message || err.message}`);
+            if (err.response && err.response.status === 409) {
+                setError(err.response.data?.message || 'Данные уже используются другим пользователем');
+            } else {
+                setError(`Не удалось сохранить данные: ${err.response?.data?.message || err.message}`);
+            }
         } finally {
             setProcessing(false);
         }
+    };
+
+    const sortStudentsByName = (students) => {
+        return [...students].sort((a, b) => {
+            const nameA = `${a.surname} ${a.name}`.toLowerCase();
+            const nameB = `${b.surname} ${b.name}`.toLowerCase();
+            return nameA.localeCompare(nameB);
+        });
+    };
+
+    const sortGroupsByName = (groups) => {
+        return [...groups].sort((a, b) => a.name.localeCompare(b.name));
     };
 
     if (loading) {
@@ -368,6 +384,19 @@ const StaffStudentsManagement = ({ facultyName }) => {
                         }}>
                             {isEditMode ? 'Редактирование студента' : 'Добавление нового студента'}
                         </h2>
+
+                        {error && (
+                            <div style={{
+                                color: '#e74c3c',
+                                marginBottom: '15px',
+                                padding: '10px',
+                                backgroundColor: '#fde8e8',
+                                borderRadius: '4px',
+                                border: '1px solid #f5c6cb'
+                            }}>
+                                {error}
+                            </div>
+                        )}
 
                         <form>
                             <div style={{ display: 'flex', gap: '15px', marginBottom: '15px' }}>
@@ -590,6 +619,7 @@ const StaffStudentsManagement = ({ facultyName }) => {
                                 <input
                                     type="password"
                                     name="password"
+                                    minLength={6}
                                     maxLength={100}
                                     value={studentForm.password}
                                     onChange={handleFormChange}

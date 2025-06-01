@@ -43,10 +43,9 @@ const CurriculumManagement = () => {
                 withCredentials: true
             });
             const sortedCurricula = response.data.sort((a, b) => {
-                const [startA, endA] = a.academicYear.split('-').map(Number);
-                const [startB, endB] = b.academicYear.split('-').map(Number);
-                const yearCompare = startA - startB || endA - endB;
-                if (yearCompare !== 0) return yearCompare;
+                if (a.academicYear !== b.academicYear) {
+                    return b.academicYear.localeCompare(a.academicYear);
+                }
                 return a.name.localeCompare(b.name);
             });
             setCurricula(sortedCurricula);

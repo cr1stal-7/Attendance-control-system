@@ -78,9 +78,10 @@ const TeacherDashboard = () => {
                         }}>
                             {schedule.map((item, index) => {
                                 const startTime = formatTime(item.datetime);
-                                const endTime = formatTime(new Date(item.datetime).setHours(
-                                    new Date(item.datetime).getHours() + 1, 30));
-                                
+                                const startDate = new Date(item.datetime);
+                                const endDate = new Date(startDate.getTime() + 90 * 60 * 1000); // +1 час 30 минут
+                                const endTime = formatTime(endDate);
+
                                 return (
                                     <div key={index} style={{
                                         padding: '12px',

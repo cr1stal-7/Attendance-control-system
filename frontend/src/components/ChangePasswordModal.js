@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 
-const ChangePasswordModal = ({ onClose }) => {
+const ChangePasswordModal = ({ onClose, userType = 'student' }) => {
     const [passwordForm, setPasswordForm] = useState({
         newPassword: '',
         confirmPassword: ''
@@ -11,6 +11,11 @@ const ChangePasswordModal = ({ onClose }) => {
     const [loading, setLoading] = useState(false);
     const [newPasswordError, setNewPasswordError] = useState('');
     const [confirmPasswordError, setConfirmPasswordError] = useState('');
+
+    const getApiUrl = () => {
+        const baseUrl = 'http://localhost:8080/api';
+        return `${baseUrl}/${userType}/settings/change-password`;
+    };
 
     const validateForm = () => {
         let isValid = true;
@@ -38,8 +43,7 @@ const ChangePasswordModal = ({ onClose }) => {
             ...prev,
             [name]: value
         }));
-        
-        // Сбрасываем ошибку при изменении поля
+
         if (name === 'newPassword' && newPasswordError) {
             setNewPasswordError('');
         }
@@ -69,7 +73,7 @@ const ChangePasswordModal = ({ onClose }) => {
 
         setLoading(true);
         try {
-            await axios.post('http://localhost:8080/api/student/settings/change-password', passwordForm, {
+            await axios.post(getApiUrl(), passwordForm, {
                 withCredentials: true
             });
             setSuccess('Пароль успешно изменен');

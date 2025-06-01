@@ -38,7 +38,10 @@ const TeacherAttendance = () => {
                 'http://localhost:8080/api/teacher/semesters',
                 { withCredentials: true }
             );
-            setSemesters(response.data);
+            const sortedSemesters = response.data.sort((a, b) =>
+                b.academicYear.localeCompare(a.academicYear)
+            );
+            setSemesters(sortedSemesters);
         } catch (err) {
             console.error('Ошибка при получении списка семестров:', err);
         } finally {

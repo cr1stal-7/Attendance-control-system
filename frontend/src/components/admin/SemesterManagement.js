@@ -24,12 +24,9 @@ const SemesterManagement = () => {
             const response = await axios.get('http://localhost:8080/api/admin/education/semesters', {
                 withCredentials: true
             });
-            const sortedSemesters = response.data.sort((a, b) => {
-                const [startA, endA] = a.academicYear.split('-').map(Number);
-                const [startB, endB] = b.academicYear.split('-').map(Number);
-                return startA - startB || endA - endB;
-            });
-
+            const sortedSemesters = response.data.sort((a, b) =>
+                b.academicYear.localeCompare(a.academicYear)
+            );
             setSemesters(sortedSemesters);
         } catch (err) {
             console.error('Ошибка загрузки семестров:', err);

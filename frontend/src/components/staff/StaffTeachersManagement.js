@@ -235,6 +235,8 @@ const StaffTeachersManagement = () => {
 
         if (!isEditMode && !employeeForm.password) {
             errors.password = "Пароль обязателен";
+        } else if (employeeForm.password && employeeForm.password.length < 6) {
+            errors.password = "Пароль должен содержать минимум 6 символов";
         }
 
         if (Object.keys(errors).length > 0) {
@@ -271,7 +273,11 @@ const StaffTeachersManagement = () => {
             await fetchEmployees();
         } catch (err) {
             console.error('Ошибка сохранения сотрудника:', err);
-            setError(`Не удалось сохранить данные: ${err.response?.data?.message || err.message}`);
+            if (err.response && err.response.status === 409) {
+                setError(err.response.data?.message ||'Email уже используется другим пользователем');
+            } else {
+                setError(`Не удалось сохранить данные: ${err.response?.data?.message || err.message}`);
+            }
         } finally {
             setProcessing(false);
         }
@@ -439,6 +445,19 @@ const StaffTeachersManagement = () => {
                         }}>
                             {isEditMode ? 'Редактирование сотрудника' : 'Добавление нового сотрудника'}
                         </h2>
+
+                        {error && (
+                            <div style={{
+                                color: '#e74c3c',
+                                marginBottom: '15px',
+                                padding: '10px',
+                                backgroundColor: '#fde8e8',
+                                borderRadius: '4px',
+                                border: '1px solid #f5c6cb'
+                            }}>
+                                {error}
+                            </div>
+                        )}
 
                         <form>
                             <div style={{ display: 'flex', gap: '15px', marginBottom: '15px' }}>
@@ -614,6 +633,7 @@ const StaffTeachersManagement = () => {
                                 <input
                                     type="password"
                                     name="password"
+                                    minLength={6}
                                     maxLength={100}
                                     value={employeeForm.password}
                                     onChange={handleFormChange}

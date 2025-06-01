@@ -98,6 +98,7 @@ const StaffSettings = () => {
             {showPasswordModal && (
                 <ChangePasswordModal
                     onClose={() => setShowPasswordModal(false)}
+                    userType="staff"
                 />
             )}
         </div>

@@ -50,7 +50,7 @@ public class StudentScheduleController {
 
     private Map<String, Object> mapClassToDto(AcademicClass c) {
         Map<String, Object> classInfo = new HashMap<>();
-        classInfo.put("datetime", c.getDatetime());
+        classInfo.put("datetime", c.getDatetime().toString());
         classInfo.put("subjectName", c.getCurriculumSubject() != null && c.getCurriculumSubject().getSubject() != null
                 ? c.getCurriculumSubject().getSubject().getName() : "Не указано");
         classInfo.put("classType", c.getClassType() != null ? c.getClassType().getName() : "Не указано");
