@@ -3,6 +3,7 @@ package com.example.attendance.controller;
 import com.example.attendance.dto.*;
 import com.example.attendance.model.*;
 import com.example.attendance.repository.*;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -57,17 +58,23 @@ public class StaffLongAbsenceController {
                 Optional<ControlPointRecord> lastEntry = controlPointRecordRepository
                         .findTopByStudentAndDirectionOrderByDatetimeDesc(student, "Вход");
 
-                Optional<Attendance> lastClass = attendanceRepository
-                        .findTopByStudentAndStatus_NameOrderByTimeDesc(student, "Присутствие");
+                List<Attendance> attendances = attendanceRepository.findByStudentAndStatus_NameOrderByClass_DatetimeDesc(
+                        student,
+                        "Присутствие",
+                        PageRequest.of(0, 1)
+                );
 
-                if (lastClass.isEmpty() || lastClass.get().getTime().isBefore(thresholdDateTime)) {
+                Optional<AcademicClass> lastClass = attendances.isEmpty()
+                        ? Optional.empty()
+                        : Optional.of(attendances.get(0).getClassEntity());
+                if (lastClass.isEmpty() || lastClass.get().getDatetime().isBefore(thresholdDateTime)) {
                     LongAbsenceDTO dto = new LongAbsenceDTO();
                     dto.setSurname(student.getSurname());
                     dto.setName(student.getName());
                     dto.setSecondName(student.getSecondName());
                     dto.setGroupName(group.getName());
 
-                    lastClass.ifPresent(attendance -> dto.setLastClassDate(attendance.getTime()));
+                    lastClass.ifPresent(ac -> dto.setLastClassDate(ac.getDatetime()));
                     lastEntry.ifPresent(entry -> dto.setLastDate(entry.getDatetime()));
 
                     result.add(dto);

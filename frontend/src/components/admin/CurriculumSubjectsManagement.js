@@ -85,7 +85,11 @@ const CurriculumSubjectsManagement = () => {
                 'http://localhost:8080/api/admin/education/semesters',
                 { withCredentials: true }
             );
-            setSemesters(response.data);
+            const sortedSemesters = response.data.sort((a, b) =>
+                b.academicYear.localeCompare(a.academicYear) ||
+                a.type.localeCompare(b.type)
+            );
+            setSemesters(sortedSemesters);
         } catch (err) {
             console.error('Ошибка загрузки семестров:', err);
             setError('Не удалось загрузить список семестров');
@@ -262,7 +266,10 @@ const CurriculumSubjectsManagement = () => {
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {subjects.map((subject, index) => (
+                                {subjects
+                                    .sort((a, b) => b.semesterName.localeCompare(a.semesterName) ||
+                                        a.semesterType.localeCompare(b.semesterType))
+                                    .map((subject, index) => (
                                     <tr key={subject.idCurriculumSubject} style={{ borderBottom: '1px solid #ddd' }}>
                                         <td style={{ padding: '12px' }}>{index + 1}</td>
                                         <td style={{ padding: '12px' }}>{subject.subjectName}</td>

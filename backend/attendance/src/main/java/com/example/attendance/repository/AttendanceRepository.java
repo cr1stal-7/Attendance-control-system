@@ -4,6 +4,7 @@ import com.example.attendance.model.AcademicClass;
 import com.example.attendance.model.Attendance;
 import com.example.attendance.model.ControlPointRecord;
 import com.example.attendance.model.Student;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -30,11 +31,6 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Integer>
     List<Attendance> findByStudentAndClassEntity_CurriculumSubject_Semester_IdSemester(
             @Param("student") Student student,
             @Param("semesterId") Integer semesterId
-    );
-
-    Optional<Attendance> findTopByStudentAndStatus_NameOrderByTimeDesc(
-            Student student,
-            String statusName
     );
 
     @Query("SELECT a FROM Attendance a WHERE " +
@@ -75,4 +71,14 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Integer>
             @Param("studentIds") List<Integer> studentIds,
             @Param("classDatetime") LocalDateTime classDatetime
     );
+
+    @Query("SELECT a FROM Attendance a " +
+            "JOIN FETCH a.classEntity ac " +
+            "WHERE a.student = :student AND " +
+            "a.status.name = :statusName " +
+            "ORDER BY ac.datetime DESC")
+    List<Attendance> findByStudentAndStatus_NameOrderByClass_DatetimeDesc(
+            @Param("student") Student student,
+            @Param("statusName") String statusName,
+            Pageable pageable);
 }

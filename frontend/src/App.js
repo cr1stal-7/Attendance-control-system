@@ -38,6 +38,7 @@ import EmployeeManagement from "./components/admin/EmployeeManagement";
 import AcademicClassesManagement from "./components/admin/AcademicClassesManagement";
 import StaffAcademicClassesManagement from "./components/staff/StaffAcademicClassManagement";
 import ProtectedRoute from './ProtectedRoute';
+import StaffDashboard from './components/staff/StaffDashboard';
 import axios from "axios";
 
 axios.interceptors.response.use(
@@ -90,12 +91,13 @@ function App() {
               <StaffLayout />
             </ProtectedRoute>
           }>
+            <Route path="dashboard" element={<StaffDashboard />} />
             <Route path="reports" element={<StaffReports />} />
             <Route path="add-users" element={<StaffAddUsers />} />
             <Route path="add-classes" element={<StaffAcademicClassesManagement />} />
             <Route path="settings" element={<StaffSettings />} />
             <Route path="long-absence" element={<StaffLongAbsence />} />
-            <Route index element={<StaffReports />} />
+            <Route index element={<StaffDashboard />} />
           </Route>
 
           <Route path="/teacher" element={

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { FaCalendarAlt, FaClipboardCheck, FaChartBar, FaCog } from 'react-icons/fa';
 
 const TeacherMenu = ({ activeItem }) => {
     return (
@@ -14,60 +15,76 @@ const TeacherMenu = ({ activeItem }) => {
             <Link
                 to="/teacher/dashboard"
                 style={{
+                    display: 'flex',
+                    alignItems: 'center',
                     padding: '15px 20px',
                     color: activeItem === 'schedule' ? '#3498db' : 'white',
                     textDecoration: 'none',
                     backgroundColor: activeItem === 'schedule' ? '#34495e' : 'transparent',
                     fontWeight: activeItem === 'schedule' ? 'bold' : 'normal',
                     transition: 'all 0.3s',
-                    fontSize: '1.2rem'
+                    fontSize: '1.2rem',
+                    gap: '10px'
                 }}
             >
+                <FaCalendarAlt size={20} />
                 Расписание
             </Link>
-            
+
             <Link
                 to="/teacher/attendance"
                 style={{
+                    display: 'flex',
+                    alignItems: 'center',
                     padding: '15px 20px',
                     color: activeItem === 'attendance' ? '#3498db' : 'white',
                     textDecoration: 'none',
                     backgroundColor: activeItem === 'attendance' ? '#34495e' : 'transparent',
                     fontWeight: activeItem === 'attendance' ? 'bold' : 'normal',
                     transition: 'all 0.3s',
-                    fontSize: '1.2rem'
+                    fontSize: '1.2rem',
+                    gap: '10px'
                 }}
             >
+                <FaClipboardCheck size={20} />
                 Учет посещаемости
             </Link>
-            
+
             <Link
                 to="/teacher/statistics"
                 style={{
+                    display: 'flex',
+                    alignItems: 'center',
                     padding: '15px 20px',
                     color: activeItem === 'statistics' ? '#3498db' : 'white',
                     textDecoration: 'none',
                     backgroundColor: activeItem === 'statistics' ? '#34495e' : 'transparent',
                     fontWeight: activeItem === 'statistics' ? 'bold' : 'normal',
                     transition: 'all 0.3s',
-                    fontSize: '1.2rem'
+                    fontSize: '1.2rem',
+                    gap: '10px'
                 }}
             >
+                <FaChartBar size={20} />
                 Отчеты
             </Link>
-            
+
             <Link
                 to="/teacher/settings"
                 style={{
+                    display: 'flex',
+                    alignItems: 'center',
                     padding: '15px 20px',
                     color: activeItem === 'settings' ? '#3498db' : 'white',
                     textDecoration: 'none',
                     backgroundColor: activeItem === 'settings' ? '#34495e' : 'transparent',
                     fontWeight: activeItem === 'settings' ? 'bold' : 'normal',
                     transition: 'all 0.3s',
-                    fontSize: '1.2rem'
+                    fontSize: '1.2rem',
+                    gap: '10px'
                 }}
             >
+                <FaCog size={20} />
                 Настройки
             </Link>
         </div>

@@ -25,7 +25,8 @@ const SemesterManagement = () => {
                 withCredentials: true
             });
             const sortedSemesters = response.data.sort((a, b) =>
-                b.academicYear.localeCompare(a.academicYear)
+                b.academicYear.localeCompare(a.academicYear) ||
+                a.type.localeCompare(b.type)
             );
             setSemesters(sortedSemesters);
         } catch (err) {

@@ -83,7 +83,7 @@ const StaffAddUsers = () => {
                         fontSize: '1.1rem'
                     }}
                 >
-                    Преподаватели
+                    Сотрудники
                 </button>
             </div>
 

@@ -30,7 +30,7 @@ const StaffLayout = () => {
         if (location.pathname.includes('add-classes')) return 'add-classes';
         if (location.pathname.includes('settings')) return 'settings';
         if (location.pathname.includes('long-absence')) return 'long-absence';
-        return 'reports';
+        return 'dashboard';
     };
 
     return (

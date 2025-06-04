@@ -17,7 +17,7 @@ const Welcome = () => {
                 } else if (response.data.role === 'Преподаватель') {
                     navigate('/teacher/dashboard', { state: response.data });
                 } else if (response.data.role === 'Сотрудник') {
-                    navigate('/staff/reports', { state: response.data });
+                    navigate('/staff/dashboard', { state: response.data });
                 } else if (response.data.type === 'student') {
                     navigate('/student/dashboard', { state: response.data });
                 } else {
