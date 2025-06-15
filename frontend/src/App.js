@@ -17,7 +17,7 @@ import StudentDashboard from './components/student/StudentDashboard';
 import StudentAttendance from './components/student/StudentAttendance';
 import StudentSettings from './components/student/StudentSettings';
 import AdminLayout from './components/admin/AdminLayout';
-import AdminWelcome from './components/admin/AdminWelcome';
+import AdminDashboard from './components/admin/AdminDashboard';
 import SpecializationManagement from "./components/admin/SpecializationManagement";
 import RoleManagement from "./components/admin/RoleManagement";
 import EducationFormManagement from "./components/admin/EducationFormManagement";
@@ -64,7 +64,7 @@ function App() {
               <AdminLayout />
             </ProtectedRoute>
           }>
-            <Route path="dashboard" element={<AdminWelcome />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="accounts/students" element={<StudentManagement />} />
             <Route path="accounts/employees" element={<EmployeeManagement />} />
             <Route path="accounts/roles" element={<RoleManagement />} />
@@ -83,7 +83,7 @@ function App() {
             <Route path="attendance/control-points" element={<ControlPointManagement />} />
             <Route path="schedule/classes" element={<AcademicClassesManagement />} />
             <Route path="schedule/class-types" element={<ClassTypeManagement />} />
-            <Route index element={<AdminWelcome />} />
+            <Route index element={<AdminDashboard />} />
           </Route>
 
           <Route path="/staff" element={

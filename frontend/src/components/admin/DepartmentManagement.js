@@ -11,7 +11,7 @@ const DepartmentManagement = () => {
     const [validationErrors, setValidationErrors] = useState({});
     const [error, setError] = useState(null);
     const [selectedParent, setSelectedParent] = useState(null);
-    const [departmentType, setDepartmentType] = useState('faculty'); // 'faculty' или 'department'
+    const [departmentType, setDepartmentType] = useState('faculty');
     const [filterParent, setFilterParent] = useState(null);
 
     const [departmentForm, setDepartmentForm] = useState({
@@ -90,7 +90,7 @@ const DepartmentManagement = () => {
         setDepartmentForm({
             name: department.name,
             shortName: department.shortName,
-            parentId: department.parentDepartment?.idDepartment || null
+            parentId: department.parentId || null
         });
         setIsEditMode(true);
         setShowModal(true);

@@ -17,39 +17,6 @@ public interface AcademicClassRepository extends JpaRepository<AcademicClass, In
             "JOIN c.curriculumSubject cs " +
             "JOIN cs.curriculum cu " +
             "JOIN cs.semester s " +
-            "JOIN c.groups g " +
-            "WHERE cu.idCurriculum = :curriculumId " +
-            "AND s.idSemester = :semesterId " +
-            "AND (:subjectId IS NULL OR cs.subject.idSubject = :subjectId) " +
-            "AND g.department.idDepartment = :departmentId")
-    List<AcademicClass> findByCurriculumAndSemesterAndDepartment(
-            @Param("curriculumId") Integer curriculumId,
-            @Param("semesterId") Integer semesterId,
-            @Param("subjectId") Integer subjectId,
-            @Param("departmentId") Integer departmentId);
-
-    @Query("SELECT c FROM AcademicClass c " +
-            "JOIN c.curriculumSubject cs " +
-            "JOIN cs.curriculum cu " +
-            "JOIN cs.semester s " +
-            "JOIN c.groups g " +
-            "WHERE cu.idCurriculum = :curriculumId " +
-            "AND s.idSemester = :semesterId " +
-            "AND (:subjectId IS NULL OR cs.subject.idSubject = :subjectId) " +
-            "AND c.datetime >= :startDate AND c.datetime < :endDate " +
-            "AND g.department.idDepartment = :departmentId")
-    List<AcademicClass> findByCurriculumAndSemesterAndDateAndDepartment(
-            @Param("curriculumId") Integer curriculumId,
-            @Param("semesterId") Integer semesterId,
-            @Param("subjectId") Integer subjectId,
-            @Param("startDate") LocalDateTime startDate,
-            @Param("endDate") LocalDateTime endDate,
-            @Param("departmentId") Integer departmentId);
-
-    @Query("SELECT c FROM AcademicClass c " +
-            "JOIN c.curriculumSubject cs " +
-            "JOIN cs.curriculum cu " +
-            "JOIN cs.semester s " +
             "WHERE cu.idCurriculum = :curriculumId " +
             "AND s.idSemester = :semesterId " +
             "AND (:subjectId IS NULL OR cs.subject.idSubject = :subjectId)")

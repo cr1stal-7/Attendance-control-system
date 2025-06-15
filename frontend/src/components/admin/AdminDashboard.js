@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { FaUserShield, FaChartLine, FaCog, FaUsers, FaBook, FaCalendarAlt } from 'react-icons/fa';
 
-const AdminWelcome = () => {
+const AdminDashboard = () => {
     const features = [
         { icon: <FaUserShield size={40} />, title: 'Управление пользователями', description: 'Контроль учетных записей сотрудников и студентов' },
         { icon: <FaBook size={40} />, title: 'Учебный процесс', description: 'Настройка учебных планов и дисциплин' },
@@ -103,4 +103,4 @@ const AdminWelcome = () => {
     );
 };
 
-export default AdminWelcome;
+export default AdminDashboard;
